@@ -3,7 +3,9 @@ from gpiozero import Motor
 from gpiozero import RGBLED
 from gpiozero import Button
 from gpiozero import DistanceSensor
+from colorzero import Color
 import time
+import numpy as np
 # from ADCS_System import *
 from Image_Processor import *
 class AutonomousController(object):
@@ -19,7 +21,6 @@ class AutonomousController(object):
                 button_pin = 4,
                 distance_sensor_left_pin = (0,1),
                 distance_sensor_right_pin = (21,16)
-
                 ):
         self.__motor1 = Motor(forward= motor1_pins[0], backward= motor1_pins[1], enable= motor1_pins[2], pwm=True) #left front
         self.__motor2 = Motor(forward= motor2_pins[0], backward= motor2_pins[1], enable= motor2_pins[2], pwm=True) #left back
@@ -164,11 +165,14 @@ class AutonomousController(object):
         return(left_distance, right_distance)
         
     def switchOnState(self):
-        print("BUTTON PRESSED!")
+        print("BUTTON PRESSED!",end=" ")
         if self.__on_state == True:
+            print("TURNING OFF")
             self.__on_state = False
         elif self.__on_state == False:
+            print("TURNING ON")
             self.__on_state = True
+
         time.sleep(1)
     
     def __heading_to_angle(self, target_angles):

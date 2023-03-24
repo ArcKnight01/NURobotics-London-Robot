@@ -22,20 +22,24 @@ import matplotlib.pyplot as plt
 # import pandas as pd
 import datetime
 
-#motor pins
-ain1, ain2, ena = (5,6,19)
-bin1, bin2, enb = (23,24,18)
-
-#rgb led pins
-rgb_r, rgb_g, rgb_b = (16, 20, 21)
-
-#i2c sensors
-i2c = busio.I2C(board.SCL, board.SDA)
-sensor = adafruit_bno055.BNO055_I2C(i2c)
-
-
 class Robot(object):
-    def __init__(self, heading =0, location = (0.0,0.0,0.0), orientation=(0,0,0) speed=0.0):
+    def __init__(self, 
+                heading =0, 
+                location = (0.0,0.0,0.0), 
+                orientation=(0.0,0.0,0.0),
+                speed=0.0,
+                left_front_motor_pins=(15,14,18), 
+                left_back_motor_pins=(7,8,12), 
+                right_front_motor_pins=(5,6,13), 
+                right_back_motor_pins=(26,20,19), 
+                left_intake_motor_pins=(9,11,10), 
+                right_intake_motor_pins=(27,17,22),
+                rgbLED_pins = (23,24,25),
+                button_pin = 4,
+                distance_sensor_left_pin = (0,1),
+                distance_sensor_right_pin = (21,16)
+                ):
+
         self.__timestamp = datetime.datetime.utcnow().timesatamp()
         self.__location = location
         self.__orientation = orientation
