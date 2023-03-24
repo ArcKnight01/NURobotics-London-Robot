@@ -3,11 +3,12 @@ from gpiozero import Motor
 from gpiozero import RGBLED
 from gpiozero import Button
 from gpiozero import DistanceSensor
-from ADCS_System import *
-from ImageProcessing import *
+import time
+# from ADCS_System import *
+from Image_Processor import *
 class AutonomousController(object):
     def __init__(self,
-                robot_state,
+                # robot_state,
                 motor1_pins=(15,14,18), 
                 motor2_pins=(7,8,12), 
                 motor3_pins=(5,6,13), 
@@ -17,26 +18,27 @@ class AutonomousController(object):
                 rgb_pins = (23,24,25),
                 button_pin = 4,
                 distance_sensor_left_pin = (0,1),
-                distance_sensor_right_pin = (16,21)
+                distance_sensor_right_pin = (21,16)
 
                 ):
         self.__motor1 = Motor(forward= motor1_pins[0], backward= motor1_pins[1], enable= motor1_pins[2], pwm=True) #left front
         self.__motor2 = Motor(forward= motor2_pins[0], backward= motor2_pins[1], enable= motor2_pins[2], pwm=True) #left back
         self.__motor3 = Motor(forward= motor3_pins[0], backward= motor3_pins[1], enable= motor3_pins[2], pwm=True) #right front
         self.__motor4 = Motor(forward= motor4_pins[0], backward= motor4_pins[1], enable= motor4_pins[2], pwm=True) #right back
-        self.__motor5 = Motor(forward= motor5_pins[0], backward= motor5_pins[1], enable = motor5_pins[2], pwm=False) #intake left
-        self.__motor6 = Motor(forward= motor6_pins[0], backward= motor6_pins[1], enable= motor6_pins[2], pwm=False) #intake right
+        self.__motor5 = Motor(forward= motor5_pins[0], backward= motor5_pins[1], enable = motor5_pins[2], pwm=True) #intake left
+        self.__motor6 = Motor(forward= motor6_pins[0], backward= motor6_pins[1], enable= motor6_pins[2], pwm=True) #intake right
         
         self.__rgbLED = RGBLED(rgb_pins[0],rgb_pins[1],rgb_pins[2], active_high=True, pwm=True, initial_value=(1,0,0))
         self.__button = Button(button_pin)
         self.__distance_sensor_left = DistanceSensor(echo=distance_sensor_left_pin[0], trigger=distance_sensor_left_pin[1])
         self.__distance_sensor_right = DistanceSensor(echo=distance_sensor_right_pin[0], trigger=distance_sensor_right_pin[1])
-
-        self.__verbose = False
+        # self.__adcs_system = ADCS(test_points=2,verbose=False)
+        
+        self.__verbose = True
         self.__heading = None
         self.__desired_heading = None
         self.__on_state = False
-        self.__button.when_pressed = switchOnState
+        self.__button.when_pressed = self.switchOnState
         # self.__speed = None
         # self.__position = None
 
@@ -51,7 +53,12 @@ class AutonomousController(object):
 
     def __repr__(self):
         pass
-    def update():
+    def update(self):
+        # self.__adcs_system.update()
+        # self.run_avoidance_check(50)
+        self.getSonarDistances()
+        # data = self.__adcs_system.get_data()
+        # print(data)
         pass
         
     def drive_motors(self, left_speed:float=0.0, right_speed:float=0.0):
@@ -61,7 +68,7 @@ class AutonomousController(object):
         self.run_motor(self.__motor4, right_speed, "fwd")
 
     def run_intake(self, speed):
-        # self.run_motor(self.__motor6, speed, "fwd")
+        self.run_motor(self.__motor6, speed, "fwd")
         self.run_motor(self.__motor5, speed, "fwd")
 
     def run_motor(self, motor, speed:float=0.0, motor_direction:str="fwd"):
@@ -76,14 +83,14 @@ class AutonomousController(object):
         if(speed > 0):
             motor.forward(abs(speed)/100.0)
             if(motor.is_active):
-                print("[INFO] Motor Forward.")
+                # print("[INFO] Motor Forward.")
                 self.__rgbLED.color = (0,0,1)
         elif(speed <0):
             motor.backward(abs(speed)/100.0)
             if(motor.is_active):
-                print("[INFO] Motor Reverse.")
+                # print("[INFO] Motor Reverse.")
                 self.__rgbLED.color = (1,0,0)   
-        else:
+        elif(speed==0):
             motor.stop()
             if(motor.is_active == False):
                 self.__rgbLED.color = (0,0,0)
@@ -105,17 +112,17 @@ class AutonomousController(object):
             print("ERR: something went wrong")
 
     def stop_drive_motors(self):
-        self.drive_motors(0.0,0.0)
+        self.drive_motors(0,0)
     
     def stop_intake(self):
-        self.runIntake(0)
+        self.run_intake(10)
 
-    def stop_motors(self)
-        self.stop_drive_motors
-        self.stop_intake
+    def stop_motors(self):
+        self.stop_drive_motors()
+        self.stop_intake()
 
     def run_avoidance_check(self, threshold):
-        left_distance, right_distance = getSonarDistances()
+        left_distance, right_distance = self.getSonarDistances()
         if(left_distance>=threshold & right_distance>=threshold):
             #do something?
             return(True,True)
@@ -138,24 +145,31 @@ class AutonomousController(object):
                                                target_center[1]-self.__position[1]))+360,360)
         return tgt_hdg
     
-    def getButtonState()->bool:
+    def getButtonState(self)->bool:
         return(self.__button.is_pressed)
 
-    def getOnState()->bool:
+    def getOnState(self)->bool:
         return(self.__on_state)
     
-    def getSonarDistances():
+    def getSonarDistances(self):
+        left_distance = 0
+        right_distance = 0
+
         left_distance = self.__distance_sensor_left.distance * 100 #cm
         right_distance = self.__distance_sensor_right.distance * 100
+        
+        time.sleep(0.3)
         if(self.__verbose):
             print(f"[DISTANCE SENSOR] Distance (CM): {left_distance} (LEFT), {right_distance} (RIGHT).")
         return(left_distance, right_distance)
         
-    def switchOnState():
+    def switchOnState(self):
+        print("BUTTON PRESSED!")
         if self.__on_state == True:
             self.__on_state = False
         elif self.__on_state == False:
             self.__on_state = True
+        time.sleep(1)
     
     def __heading_to_angle(self, target_angles):
         #account for multiple targets? targets would be ping pong balls in this case
@@ -202,7 +216,7 @@ class AutonomousController(object):
                 self.__select_action() #make this return a command?
                 drive_fwd_continuosly(speed=100)
                 # turn_continuously(turn_dir="clockwise",speed=100)
-            else(self.__on_state==False):
+            elif(self.__on_state==False):
                 autonomousController.stop
 
         pass
@@ -210,11 +224,25 @@ if __name__ == "__main__":
     autonomousController = AutonomousController()
     
     while(True):
-        if(autonomousController.getOnState):
-            # autonomousController.drive_motors(100,100)
-            autonomousController.update()
-            autonomousController.run_intake(100)
-            autonomousController.turn_continously("counterclockwise", 50)
+        # autonomousController.decide()
+        autonomousController.update()
+        print("loop!")
+        if(autonomousController.getOnState()):
+            print(autonomousController.getOnState(), end='|')
+            print(time.time())
+            
+            autonomousController.run_intake(75)
+            
+            autonomousController.drive_motors(100,5)
+            time.sleep(2.5)
+            autonomousController.stop_motors()
+            time.sleep(1)
+            autonomousController.drive_motors(5,100)
+            time.sleep(2.5)
+            autonomousController.stop_motors()
+            time.sleep(1)
+            
         else:
-            autonomousController.stop_motors
+            autonomousController.stop_motors()
+        time.sleep(1)
     # autonomousController.decide()

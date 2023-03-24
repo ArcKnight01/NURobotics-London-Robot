@@ -26,7 +26,7 @@ class ADCS(object):
         self.__previous_orientation = self.__initial_orientation
 
         #zero the orientation to intitial orientation of robot
-        zero_orientation()
+        self.zero_orientation()
         
         self.__startTime = time.time()
 
@@ -63,10 +63,14 @@ class ADCS(object):
         accelZ = accelZ - offset_accel[2]
 
         #When the robot is still, the accel values are near 0. In this case, set accel values to zero.
-        accelX = 0 if (abs(accelX) < 1 ) else accelX = accelX
-        accelY = 0 if (abs(accelY) < 1) else accelY = accelY
-        accelZ = 0 if (abs(accelZ < 1)) else accelZ = accelZ
-
+        
+        if (abs(accelX) < 1):
+            accelX = 0
+        if (abs(accelY < 1)):
+            accelY = 0
+        if (abs(accelZ < 1)):
+            accelZ = 0
+       
         #update accel values
         self.__acceleration = (accelX, accelY, accelZ)
 
@@ -138,7 +142,7 @@ class ADCS(object):
             print(f"[INFO] RPY_F {self.__orientation}")
 
     def calibrate_accelerometer(self):
-        calibration_pause = 1.0
+        calibration_pause = 1
 
         accelXList = [];
         accelYList = [];
@@ -159,7 +163,7 @@ class ADCS(object):
             time.sleep(1)
         print("[CALIBRATION] Calibration complete.")
         # print(rollList)
-        time.sleep(self.__acceleration) # break after calibrating
+        time.sleep(calibration_pause) # break after calibrating
 
         avgX = np.mean((np.min(accelXList),np.max(accelXList)))
         avgY = np.mean((np.min(accelYList), np.max(accelYList)))
@@ -170,19 +174,20 @@ class ADCS(object):
         print(f"[CALIBRATION] Acceleration offsets: {accel_offsets}.")
         return accel_offsets
     def zero_orientation(self):
-        self.__orientation_zeroed = self.__orientation
-        self.__roll = self.__roll - self.__orientation_zeroed[0]
-        self.__pitch = self.__pitch - self.__orientation_zeroed[1]
-        self.__yaw = self.__yaw - self.__orientation_zeroed[2]
-        self.__orientation = self.__roll, self.__pitch, self.__yaw
+        # self.__orientation_zeroed = self.__orientation
+        # self.__roll = self.__roll - self.__orientation_zeroed[0]
+        # self.__pitch = self.__pitch - self.__orientation_zeroed[1]
+        # self.__yaw = self.__yaw - self.__orientation_zeroed[2]
+        # self.__orientation = self.__roll, self.__pitch, self.__yaw
         
     def set_initial(self, mag_offset = [0,0,0]):
+        calibration_pause=1
         accelX, accelY, accelZ =  self.__sensor.acceleration #m/s^2
         magX, magY, magZ = self.__sensor.magnetic #gauss
 
         #Sets the initial position for plotting and gyro calculations.
         print("[CALIBRATION] Preparing to set initial orientation. Please hold the IMU still.")
-        time.sleep(1)
+        time.sleep(calibration_pause)
         print("[CALIBRATION] Setting orientation...")
         
         #Calibrate magnetometer readings. Defaults to zero until you
@@ -200,11 +205,12 @@ class ADCS(object):
     
     
     def calibrate_mag(self):
+        calibration_pause = 1
         rollList = [];
         pitchList = [];
         yawList = [];
         print("Preparing to calibrate magnetometer. Please wave around.")
-        time.sleep(1) # pause before calibrating
+        time.sleep(calibration_pause) # pause before calibrating
         print("Calibrating...")
         numTestPoints = 0;
         while numTestPoints < self.__test_points:
@@ -215,10 +221,10 @@ class ADCS(object):
             pitchList.append(magY)
             yawList.append(magZ)
             numTestPoints += 1
-            time.sleep(1)
+            time.sleep(calibration_pause)
         print("Calibration complete.")
         # print(rollList)
-        time.sleep(1) # break after calibrating
+        time.sleep(calibration_pause) # break after calibrating
         avgX = np.mean((np.min(rollList),np.max(rollList)))
         avgY = np.mean((np.min(pitchList), np.max(pitchList)))
         avgZ = np.mean((np.min(yawList), np.max(yawList)))
@@ -228,11 +234,12 @@ class ADCS(object):
         
 
     def calibrate_gyro(self):
+        calibration_pause=1
         rollList = [];
         pitchList = [];
         yawList = [];
         print("Preparing to calibrate gyroscope. Please hold still.")
-        time.sleep(1) # pause before calibrating
+        time.sleep(calibration_pause) # pause before calibrating
         print("Calibrating...")
 
         numTestPoints = 0;
@@ -244,10 +251,10 @@ class ADCS(object):
             pitchList = pitchList + [gyroY] 
             yawList = yawList + [gyroZ]
             numTestPoints += 1
-            time.sleep(1)
+            time.sleep(calibration_pause)
         print("Calibration complete.")
         
-        time.sleep(1) # break after calibrating
+        time.sleep(calibration_pause) # break after calibrating
         avgX = np.mean((np.min(rollList),np.max(rollList)))
         avgY = np.mean((np.min(pitchList), np.max(pitchList)))
         avgZ = np.mean((np.min(yawList), np.max(yawList)))
@@ -274,7 +281,7 @@ class ADCS(object):
         return ([(180/np.pi)*rollN,(180/np.pi)*pitchN,(180/np.pi)*yawN])
 
     def get_data(self):
-        return(self.__acceleration, self.__velocity, self.__position, self.__roll)
+        return(self.__acceleration, self.__velocity, self.__position, self.__orientation)
 
 if __name__ == '__main__':
     # print("Args passed: ", end='')
