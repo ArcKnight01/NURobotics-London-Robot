@@ -1,0 +1,14 @@
+git init
+git add .
+git commit -m "Initial commit"
+git remote add origin [yoururlhere]
+git branch -M master
+git push -u origin master
+
+#after first push
+
+git pull
+git add .
+git commit -m "What I changed"
+git push
+
