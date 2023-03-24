@@ -126,6 +126,11 @@ class AutonomousController(object):
             #TODO implement detect april tags, find angles to them?
             #TODO implement ping pong ball detection, find angles to them
             #TODO check if heading is correct, if not turn. else drive forward
+            self.__heading = #get heading from adcs system
+            #check time, if time is running out use self.__heading_to_position(insert center of arena position here? whatever the final drop off is)
+            print(f"The heading of the robot is {self.__heading}")
+            self.__desired_heading = self.__heading_to_angle(targets) #TODO implement targets (ping pong balls? fiducial/april tag)
+            self.__select_action() #make this return a command?
             drive_fwd_continuosly(speed=100)
             # turn_continuously(turn_dir="clockwise",speed=100)
 
