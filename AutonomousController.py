@@ -40,8 +40,10 @@ class AutonomousController(object):
         self.__button = Button(button_pin)
         self.__distance_sensor_left = DistanceSensor(echo=distance_sensor_left_pin[0], trigger=distance_sensor_left_pin[1])
         self.__distance_sensor_right = DistanceSensor(echo=distance_sensor_right_pin[0], trigger=distance_sensor_right_pin[1])
+
+        self.distances = self.get_distances()
         # self.__adcs_system = ADCS(test_points=2,verbose=False)
-        
+        self.__image_processor = ImageProcessor('pi/home/NuRobotics')
         self.__first_start = True
         self.__start_time = None
 
@@ -98,31 +100,6 @@ class AutonomousController(object):
     def __repr__(self):
 
         return f"nulondon robot"
-
-    def update(self):
-        # assert self.__first_start == False, "[ERR] Must be run after button press"
-        if(self.__first_start == False):
-            self.__current_time = time.time()
-            self.__timer = self.__current_time - self.__start_time
-            self.__competition_timer = self.__current_time - self.__competition_start_time
-            
-        
-        if(self.check_if_endgame(120)):
-            #TODO have robot know to return to start
-            print("[MODE] ENDGAME")
-            pass
-        
-        #Update and get ADCS data
-        # self.__adcs_system.update()
-        # print(self.__adcs_system.get_data())
-        
-        #Update and get sonar data, and check for collision
-        # self.getSonarDistances()
-        # self.run_avoidance_check(50)
-        
-       
-        
-        pass
         
     def drive_motors(self, left_speed:float=0.0, right_speed:float=0.0):
         self.run_motor(self.__motor1, left_speed, "fwd")
@@ -140,6 +117,9 @@ class AutonomousController(object):
         self.run_motor(self.__motor5, 0, "stop")
 
     def run_motor(self, motor, speed:float=0.0, motor_direction:str="fwd"):
+        """
+        Run a motor. Note that this sets the motor speed, and the motor keeps running once set, until set to speed 0
+        """
         assert (speed >= -100) & (speed <= 100), "[ERR] Speed is out of bounds, must be a percent!"
         assert motor_direction in ['fwd','rev','stop'], "[ERR] Invalid Direction"
         if(motor_direction.lower().strip() == 'rev'):
@@ -184,8 +164,8 @@ class AutonomousController(object):
         self.stop_drive_motors()
         self.stop_intake()
 
-    def run_avoidance_check(self, threshold):
-        left_distance, right_distance = self.getSonarDistances()
+    def run_avoidance_check(self, threshold, ignore = False):
+        left_distance, right_distance = self.get_distances()
         if(left_distance>=threshold & right_distance>=threshold):
             #do something?
             return(True,True)
@@ -268,6 +248,7 @@ class AutonomousController(object):
         while(True): #replace with while switch is on when switch enabled.
             if(self.__on_state):
                 #TODO implement detect april tags, find angles to them?
+
                 #TODO implement ping pong ball detection, find angles to them
                 #TODO check if heading is correct, if not turn. else drive forward
                 # self.__heading = #get heading from adcs system
@@ -282,9 +263,11 @@ class AutonomousController(object):
 
         pass
 
-    def driveForTime(self, start_time:float=1, direction:str="forward", speed:float=100):
+    def driveForTime(self, start_time:float=1,end_time:float=1, direction:str="forward", speed:float=100):
         assert direction in ["forward", "reverse", "left", "right", "stop", "wall_left", "wall_forward"]
         if((direction=="forward") & (self.__timer >= start_time)):
+            if(self.timer >= end_time - 0.5):
+                self.run_avoidance_check()
             self.drive_motors(speed, speed)
         elif((direction=="reverse") & (self.__timer >= start_time)):
             self.drive_motors(speed, speed)
@@ -307,6 +290,30 @@ class AutonomousController(object):
             #something went wrong
             pass
 
+    def update(self):
+        # assert self.__first_start == False, "[ERR] Must be run after button press"
+        if(self.__first_start == False):
+            self.__current_time = time.time()
+            self.__timer = self.__current_time - self.__start_time
+            self.__competition_timer = self.__current_time - self.__competition_start_time
+            
+        
+        if(self.check_if_endgame(120)):
+            #TODO have robot know to return to start
+            print("[MODE] ENDGAME")
+            pass
+        
+        #Update and get ADCS data
+        # self.__adcs_system.update()
+        # print(self.__adcs_system.get_data())
+        
+        #Update and get sonar data, and check for collision
+        self.get_distances()
+        self.run_avoidance_check(50)
+        
+       
+        
+        pass
 if __name__ == "__main__":
     autonomousController = AutonomousController()
     
@@ -318,13 +325,14 @@ if __name__ == "__main__":
             print(autonomousController.get_on_state(), end='|')
             print(autonomousController.get_timer())
             autonomousController.start_intake(75)
-            autonomousController.driveForTime(0.0, "wall_forward", 70)
-            autonomousController.driveForTime(2.0, "wall_left", 100)
-            autonomousController.driveForTime(5.5, "forward", 100)
-            autonomousController.driveForTime(6.5, "right", 100)
-            autonomousController.driveForTime(10.5, "forward", 100)
-            autonomousController.driveForTime(12.5, "left", 100)
-            autonomousController.driveForTime(16.5, "forward", 100)
+            autonomousController.driveForTime(0.0, 2.0, "wall_forward", 70)
+            autonomousController.driveForTime(2.0, 5.5, "wall_left", 100)
+            autonomousController.driveForTime(5.5, 6.5, "forward", 100)
+            autonomousController.driveForTime(6.5, 10.5, "right", 100)
+            autonomousController.driveForTime(10.5, 12.5, "forward", 100)
+            autonomousController.driveForTime(12.5, 16.5, "left", 100)
+            autonomousController.driveForTime(16.5, 20.0, "forward", 100)
+
         else:
             autonomousController.stop_motors()
         time.sleep(0.1)
