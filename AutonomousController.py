@@ -9,8 +9,10 @@ if os.uname().nodename == 'robotpi':
     from colorzero import Color
 import time
 import numpy as np
-# from ADCS_System import *
+from ADCS_System import *
 from Image_Processor import *
+import psutil
+
 class AutonomousController(object):
     def __init__(self,
                 # robot_state,
@@ -43,8 +45,11 @@ class AutonomousController(object):
         self.__distance_sensor_right = DistanceSensor(echo=distance_sensor_right_pin[0], trigger=distance_sensor_right_pin[1])
 
         self.distances = self.get_distances()
-        # self.__adcs_system = ADCS(test_points=2,verbose=False)
-        self.__image_processor = ImageProcessor('pi/home/NuRobotics/')
+        self.ultrasound_enabled = False
+        self.__adcs_enabled = False
+        if(self.__adcs_enabled==True):
+            self.__adcs_system = ADCS(test_points=1,verbose=False)
+        self.__image_processor = ImageProcessor('./')
         self.__first_start = True
         self.__start_time = None
 
@@ -53,6 +58,8 @@ class AutonomousController(object):
         self.__competition_timer = 0.0
         self.__timer = 0.0
         self.__verbose = verbose
+        self.__camera_enabled = False
+        
         
         self.__on_state = False #change to false if you want
         self.__button.when_pressed = self.switch_on_state
@@ -66,17 +73,24 @@ class AutonomousController(object):
             return(True)
         else:
             return(False)
-
+    def switch_ultrasound_enable(self):
+        if(self.ultrasound_enabled ==False):
+            self.ultrasound_enabled = True
+        elif(self.ultrasound_enabled==True):
+            self.ultrasound_enabled = False
+        return(self.ultrasound_enabled)
 
     def get_current_time(self):
         return(self.__current_time)
     
     def initialize(self, robot_state):
+        #UNUSED
         #initialize heading
-        self.__heading = robot_state['heading']
-        self.__speed = robot_state['speed']
-        self.__position = robot_state['position']
-        self.__desired_heading = robot_state['heading']
+        # self.__heading = robot_state['heading']
+        # self.__speed = robot_state['speed']
+        # self.__position = robot_state['position']
+        # self.__desired_heading = robot_state['heading']
+        pass
     
 
     def switch_on_state(self):
@@ -202,8 +216,6 @@ class AutonomousController(object):
         print(f"[DISTANCE SENSOR] Distance (CM): {left_distance} (LEFT), {right_distance} (RIGHT).", end="|")
         return(left_distance, right_distance)
         
-    
-    
     def __heading_to_angle(self, target_angles):
         #account for multiple targets? targets would be ping pong balls in this case
         if len(target_angles=0):
@@ -222,6 +234,9 @@ class AutonomousController(object):
     
     def get_timer(self):
         return self.__timer
+    
+    def get_competition_timer(self):
+        return self.__competition_timer
     
     def __select_action(self):
         delta_angle = max(self.__desired_heading, self.__heading) - min(self.__desired_heading, self.__heading)
@@ -259,50 +274,86 @@ class AutonomousController(object):
 
         pass
 
-    def driveForTime(self, start_time:float=1, direction:str="forward", speed:float=100):
-        print(f"dir{direction}", end="|")
+    def driveForTime(self, start_time:float=1, direction:str="forward", speed:float=100, duration:float=1):
+        
+        # print(f"dir{direction}", end="|")
         assert direction in ["forward", "reverse", "left", "right", "stop", "wall_left", "wall_forward"]
         if((direction=="forward") & (self.__timer >= start_time)):
             # if(self.__timer >= end_time - 0.2):
                 # self.run_avoidance_check(50)
                 # self.__timer -= 5
             self.drive_motors(speed, speed)
+            print(f"dir{direction}", end="|")
         elif((direction=="reverse") & (self.__timer >= start_time)):
+            print(f"dir{direction}", end="|")
             self.drive_motors(speed, speed)
         elif((direction=="left") & (self.__timer >= start_time)):
             self.drive_motors(0.05*speed, speed)
+            print(f"dir{direction}", end="|")
             # self.drive_motors(5, speed)
         elif((direction=="right") & (self.__timer >= start_time)):
             self.drive_motors(speed, 0.05*speed)
+            print(f"dir{direction}", end="|")
             # self.drive_motors(speed,5)
         elif((direction=="stop") & (self.__timer >= start_time)):
             self.drive_motors(0,0)
+            print(f"dir{direction}", end="|")
             # self.drive_motors(speed,5)
         elif((direction=="wall_left") & (self.__timer >= start_time)):
             self.drive_motors(0.075*speed, speed)
+            print(f"dir{direction}", end="|")
             # self.drive_motors(5, speed)
         elif((direction=="wall_forward") & (self.__timer >= start_time)):
+            # autonomousController.switch_ultrasound_enable()
             self.drive_motors(0.5*speed, speed)
+            print(f"dir{direction}", end="|")
             # self.drive_motors(5, speed)
         else:
             #something went wrong
             pass
+        return (start_time + duration)
         
-
+    
+    def retrieve_percentage(self):
+        self.__battery = psutil.sensors_battery()
+        if(self.__battery != None):
+            self.__percent = int(self.__battery.percent)
+        else:
+            self.__percent = -1
+        return self.__percent
+    
     def update(self):
         # assert self.__first_start == False, "[ERR] Must be run after button press"
         if(self.__first_start == False):
             self.__current_time = time.time()
             self.__timer = self.__current_time - self.__start_time
             self.__competition_timer = self.__current_time - self.__competition_start_time
-            # self.__image_processor.run()
         
-        if(self.check_if_endgame(90)):
+        if(self.__camera_enabled):
+            try:
+                self.__image_processor.run()
+            except:
+                pass
+        
+        if(self.ultrasound_enabled==True):
+            self.run_avoidance_check(10)
+        elif(self.ultrasound_enabled==False):
+            pass
+
+            
+        if(self.check_if_endgame(179)):
             #TODO have robot know to return to start
-            print("[MODE] ENDGAME")
+            autonomousController.stop_motors()
+            sys.exit(0)
             pass
         
+        if(self.__adcs_enabled):
+            self.__adcs_system.update()
+            self.__raw_accel, self.__acceleration, self.__velocity, self.__position, self.__orientation = self.__adcs_system.get_data()
+            # print(f"Raw:{(round(self.__raw_accel[1:][0],2), round(self.__raw_accel[1:][1],2))}|Accel:{accel[1:]}|Vel:{vel[1:]}|Pos:{pos[1:]}|Rpy:{rpy}")
+
         #Update and get ADCS data
+        
         # self.__adcs_system.update()
         # print(self.__adcs_system.get_data())
         
@@ -317,23 +368,29 @@ if __name__ == "__main__":
     
     while(True):
         # autonomousController.decide()
-        autonomousController.update()
+        automatic_start=False #change in comp
+        motor_enable = True
         print() #new line
-        print("<loop>", end=' ')
-        print(f"on?:{autonomousController.get_on_state()}", end='|')
-        if(autonomousController.get_on_state()):
-            print(f"timer:{autonomousController.get_timer()} ms", end='|')
-            autonomousController.start_intake(75)
-            autonomousController.driveForTime(0.0, "wall_forward", 65)
-            autonomousController.driveForTime(1.75, "wall_left", 100)
-            autonomousController.driveForTime(5.0, "forward", 100)
-            autonomousController.driveForTime(5.75, "right", 100)
-            autonomousController.driveForTime(9.25, "forward", 100)
-            autonomousController.driveForTime(10.0, "left", 100)
-            autonomousController.driveForTime(15.5, "forward", 100)
-            autonomousController.driveForTime(16.0, "left", 100)
-            autonomousController.driveForTime(17.0, "forward", 100)
-            autonomousController.driveForTime(17.5, "left", 100)
+        print("l", end='>')
+        if (autonomousController.retrieve_percentage() != -1):
+            print(f"PWR{autonomousController.retrieve_percentage()}",end='|')
+        print(f"on:{autonomousController.get_on_state()}", end='|')
+        if(autonomousController.get_on_state() or automatic_start==True):
+            autonomousController.update()
+            print(f"timer:{autonomousController.get_timer()}-s", end='|')
+            print(f"c_timer{autonomousController.get_competition_timer()}-s", end='|')
+            if(motor_enable == True):
+                autonomousController.start_intake(95)
+                timestamp = autonomousController.driveForTime(0, "wall_forward", 65, 1.75)
+                timestamp = autonomousController.driveForTime(timestamp, "wall_left", 100, 3.25)
+                timestamp = autonomousController.driveForTime(timestamp, "forward", 100, 0.75)
+                timestamp = autonomousController.driveForTime(timestamp, "right", 100, 3.75)
+                timestamp = autonomousController.driveForTime(timestamp, "forward", 100, 0.75)
+                timestamp = autonomousController.driveForTime(timestamp, "left", 100, 3.75)
+                timestamp = autonomousController.driveForTime(timestamp, "forward", 100,0.5 )
+                timestamp = autonomousController.driveForTime(timestamp, "left", 100, 0.5)
+                timestamp = autonomousController.driveForTime(timestamp, "forward", 100, 0.5)
+                timestamp = autonomousController.driveForTime(timestamp, "left", 100, 120-timestamp)
         else:
             autonomousController.stop_motors()
             

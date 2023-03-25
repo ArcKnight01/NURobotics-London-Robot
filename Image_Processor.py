@@ -14,13 +14,13 @@ from Camera_Util import detect_apriltags
 from Camera_Util import detect_spheres
 
 class ImageProcessor():
-    def __init__(self, log_dir = './'):
+    def __init__(self, log_dir:str='./', verbose:bool=False):
         self.__camera = picamera.PiCamera()
         self.__camera.resolution = (640, 480)
         self.__camera.framerate = 24
         time.sleep(2) #camera warm up time
         self.__image = np.empty((480*640*3,), dtype=np.uint8)
-
+        self.__verbose = verbose
         #create image save directory
         self.__image_dir = pathlib.Path(log_dir,'Frames')
         if(self.__image_dir.exists() == False):
@@ -41,17 +41,20 @@ class ImageProcessor():
             # self.__camera = picamera.PiCamera()
             self.__camera.resolution = (640, 480)
             self.__camera.framerate = 24
-            time.sleep(2) # camera warmup time
+            time.sleep(0.05) # camera warmup time
             
         image = self.__image.reshape((480, 640, 3))
         
         #detect APRIL TAGS
         detected, image, tagFamilies, tagIds, centers, angles, corners = detect_apriltags(image)
         if(detected == True):
-            print(f"TAG(s) DETECTED:")
+            if(self.__verbose==True):
+                print(f"TAG(s) DETECTED:")
             for tagId in tagIds:
-                print(tagId)
+                if(self.__verbose==True):
+                    print(tagId)
         else:
+            
             print(f"NO TAG(s) DETECTED!")
         #detect SPHERES
         # detect_spheres(image)

@@ -13,7 +13,9 @@ class ADCS(object):
         self.__i2c = busio.I2C(board.SCL, board.SDA)
         self.__sensor = adafruit_bno055.BNO055_I2C(self.__i2c)
         self.__acceleration = (0,0,0)
+        self.__previous_acceleration = (0,0,0)
         self.__velocity = (0,0,0)
+        self.__previous_velocity = (0,0,0)
         self.__position = (0,0,0)
         
         self.__accelerometer_offset = self.calibrate_accelerometer()
@@ -25,8 +27,9 @@ class ADCS(object):
         self.__orientation = self.__initial_orientation
         self.__previous_orientation = self.__initial_orientation
 
+        self.__orientation_zeroed = self.zero_orientation()
         #zero the orientation to intitial orientation of robot
-        self.zero_orientation()
+        
         
         self.__startTime = time.time()
 
@@ -55,7 +58,8 @@ class ADCS(object):
 
         #get acceleration offset
         offset_accel = self.__accelerometer_offset
-        
+        self.__previous_acceleration = self.__acceleration
+        self.__previous_velocity = self.__velocity
         accelX, accelY, accelZ = self.__acceleration = self.__linear_acceleration
         
         accelX = accelX - offset_accel[0]
@@ -63,17 +67,21 @@ class ADCS(object):
         accelZ = accelZ - offset_accel[2]
 
         #When the robot is still, the accel values are near 0. In this case, set accel values to zero.
-        
-        if (abs(accelX) < 1):
+        accelX = round(accelX,2)
+        accelY = round(accelY,2)
+        accelZ = round(accelZ,2)
+
+        if (abs(accelX) < 0.75):
             accelX = 0
-        if (abs(accelY < 1)):
+        if (abs(accelY < 0.75)):
             accelY = 0
-        if (abs(accelZ < 1)):
+        if (abs(accelZ < 0.75)):
             accelZ = 0
        
         #update accel values
         self.__acceleration = (accelX, accelY, accelZ)
 
+        self.__delta_acceleration = (self.__acceleration[0] - self.__previous_acceleration[0],self.__acceleration[1] - self.__previous_acceleration[1],self.__acceleration[2] - self.__previous_acceleration[2])
         #get roll,pitch,yaw with acceleration-magnetic data
         self.__roll_am = roll_am(self.__acceleration[0], self.__acceleration[1], self.__acceleration[2])
         self.__pitch_am = pitch_am(self.__acceleration[0], self.__acceleration[1], self.__acceleration[2])
@@ -117,11 +125,12 @@ class ADCS(object):
         self.__previous_orientation = [self.__roll_gy, self.__pitch_gy, self.__yaw_gy]
 
         #update velocity
-        dt = 1
-        self.__velocity = (self.__velocity[0] + self.__acceleration[0]*dt, self.__velocity[1] + self.__acceleration[1], self.__velocity[2] + self.__acceleration[2])
-        
+        dt = delT
+        #dt = 1
+        self.__velocity = (self.__velocity[0] + self.__delta_acceleration[0]*dt, self.__velocity[1] + self.__delta_acceleration[1]*dt, self.__velocity[2] + self.__delta_acceleration[2]*dt)
+        self.__delta_velocity = (self.__velocity[0] - self.__previous_velocity[0],self.__velocity[1] - self.__previous_velocity[1],self.__velocity[2] - self.__previous_velocity[2])
         #update position
-        self.__position = (self.__position[0] + self.__velocity[0]*dt, self.__position[1] + self.__velocity[1], self.__position[2]  +self.__velocity[2])
+        self.__position = (self.__position[0] + self.__delta_velocity[0]*dt, self.__position[1] + self.__delta_velocity[1]*dt, self.__position[2]  +self.__delta_velocity[2]*dt)
         
         
         if(self.__verbose):
@@ -174,14 +183,17 @@ class ADCS(object):
         print(f"[CALIBRATION] Acceleration offsets: {accel_offsets}.")
         return accel_offsets
     def zero_orientation(self):
-        # self.__orientation_zeroed = self.__orientation
-        # self.__roll = self.__roll - self.__orientation_zeroed[0]
-        # self.__pitch = self.__pitch - self.__orientation_zeroed[1]
-        # self.__yaw = self.__yaw - self.__orientation_zeroed[2]
-        # self.__orientation = self.__roll, self.__pitch, self.__yaw
+        self.__orientation_zeroed = self.__orientation
+        self.__roll, self.__pitch, self.__yaw = self.__orientation
         
+        self.__roll = self.__roll - self.__orientation_zeroed[0]
+        self.__pitch = self.__pitch - self.__orientation_zeroed[1]
+        self.__yaw = self.__yaw - self.__orientation_zeroed[2]
+        self.__orientation = (self.__roll, self.__pitch, self.__yaw)
+        return(self.__orientation_zeroed)
+
     def set_initial(self, mag_offset = [0,0,0]):
-        calibration_pause=1
+        calibration_pause=.001
         accelX, accelY, accelZ =  self.__sensor.acceleration #m/s^2
         magX, magY, magZ = self.__sensor.magnetic #gauss
 
@@ -205,7 +217,7 @@ class ADCS(object):
     
     
     def calibrate_mag(self):
-        calibration_pause = 1
+        calibration_pause = .001
         rollList = [];
         pitchList = [];
         yawList = [];
@@ -234,7 +246,7 @@ class ADCS(object):
         
 
     def calibrate_gyro(self):
-        calibration_pause=1
+        calibration_pause=.001
         rollList = [];
         pitchList = [];
         yawList = [];
@@ -281,15 +293,16 @@ class ADCS(object):
         return ([(180/np.pi)*rollN,(180/np.pi)*pitchN,(180/np.pi)*yawN])
 
     def get_data(self):
-        return(self.__acceleration, self.__velocity, self.__position, self.__orientation)
+        return(self.__raw_acceleration, self.__acceleration, self.__velocity, self.__position, self.__orientation)
 
 if __name__ == '__main__':
     # print("Args passed: ", end='')
     # print([sys.argv[0]], end='|')
     # print(sys.argv[1:], end = '||')
-    print(f"test_points={sys.argv[1:][0]}, verbose={sys.argv[1:][1]}")
+    
     # print(len([*sys.argv[1:]] ))
     if(sys.argv[1:] != list()):
+        print(f"test_points={sys.argv[1:][0]}, verbose={sys.argv[1:][1]}")
         # print("args passed!")
         # print(sys.argv[1:])
         imu = ADCS(test_points=int(sys.argv[1]), verbose=(True if str(sys.argv[2])=='True' else False))
@@ -298,4 +311,7 @@ if __name__ == '__main__':
         imu = ADCS(test_points=10, verbose=False)
     while(True):
         imu.update()
+        raw, accel, vel, pos, rpy = imu.get_data()
+        # print(f"Raw:{(round(raw[1:][0],2), round(raw[1:][1],2))}|Accel:{(round(accel[1:][0],2),}|Vel:{vel}|Pos:{pos}|Rpy:{rpy}")
+
         pass
