@@ -24,7 +24,7 @@ def sensor_angle(sensor_pos_x, sensor_pos_y, f):
     return np.degrees(np.arctan2(sensor_pos_x,f))
 
 def detect_apriltags(image):
-    image = cv2.imread('/home/pi/NuRobotics/Frames/tag16_05_00000.png')
+    # image = cv2.imread('/home/pi/NuRobotics/Frames/tag16_05_00000.png')
     
     #convert image to grayscale
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
