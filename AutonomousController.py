@@ -1,9 +1,12 @@
-
-from gpiozero import Motor
-from gpiozero import RGBLED
-from gpiozero import Button
-from gpiozero import DistanceSensor
-from colorzero import Color
+import os
+import pathlib
+import sys
+if os.uname().nodename == 'robotpi':
+    from gpiozero import Motor
+    from gpiozero import RGBLED
+    from gpiozero import Button
+    from gpiozero import DistanceSensor
+    from colorzero import Color
 import time
 import numpy as np
 # from ADCS_System import *
@@ -49,7 +52,7 @@ class AutonomousController(object):
         self.__verbose = True
         
         self.__on_state = False #change to false if you want
-        self.__button.when_pressed = self.switchOnState
+        self.__button.when_pressed = self.switch_on_state()
 
         # self.__speed = None
         # self.__position = None
@@ -73,7 +76,7 @@ class AutonomousController(object):
         self.__desired_heading = robot_state['heading']
     
 
-    def switchOnState(self):
+    def switch_on_state(self):
         """This function runs whenever the button is pressed"""
         if(self.__first_start):
             self.__competition_start_time = time.time()

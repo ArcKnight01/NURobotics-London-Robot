@@ -12,3 +12,8 @@ git add .
 git commit -m "What I changed"
 git push
 
+#cloning
+
+git clone git@github.com:ArcKnight01/NURobotics-London-UniBots-Robot.git
+git pull
+

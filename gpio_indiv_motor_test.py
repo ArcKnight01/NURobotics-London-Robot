@@ -1,8 +1,9 @@
-from gpiozero import Motor
-from gpiozero import RGBLED
+
 import os 
 import sys
 import time
+from gpiozero import Motor
+from gpiozero import RGBLED
 import curses
 
 # actions = {
