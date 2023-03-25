@@ -42,7 +42,7 @@ class AutonomousController(object):
         self.__first_start = True
         self.__start_time = None
 
-        self.__current_time = time().time()
+        self.__current_time = 0
         
         self.__competition_timer = 0.0
         self.__timer = 0.0
@@ -76,8 +76,8 @@ class AutonomousController(object):
     def switchOnState(self):
         """This function runs whenever the button is pressed"""
         if(self.__first_start):
-            self.__competition_start_time = time().time()
-            self.__start_time
+            self.__competition_start_time = time.time()
+            self.__start_time = self.__competition_start_time
             self.__first_start = False
         
         print("BUTTON PRESS DETECTED",end=" ")
@@ -86,6 +86,7 @@ class AutonomousController(object):
             self.__on_state = False
         elif self.__on_state == False:
             print("TURNING ON")
+            self.__start_time = time.time()
             self.__on_state = True
         
         self.stop_motors()
@@ -96,13 +97,14 @@ class AutonomousController(object):
         return f"nulondon robot"
 
     def update(self):
-        assert self.__first_start == False, "[ERR] Must be run after button press"
-        self.__current_time = time().time()
-        self.__timer = self.__current_time - self.__start_time
-        self.__competition_timer = self.__current_time - self.__competition_start_time
+        # assert self.__first_start == False, "[ERR] Must be run after button press"
+        if(self.__first_start == False):
+            self.__current_time = time.time()
+            self.__timer = self.__current_time - self.__start_time
+            self.__competition_timer = self.__current_time - self.__competition_start_time
+            
         
-        
-        if(self.check_if_endgame()):
+        if(self.check_if_endgame(120)):
             #TODO have robot know to return to start
             print("[MODE] ENDGAME")
             pass
@@ -174,9 +176,6 @@ class AutonomousController(object):
 
     def stop_drive_motors(self):
         self.drive_motors(0,0)
-    
-    def stop_intake(self):
-        self.run_intake(10)
 
     def stop_motors(self):
         self.stop_drive_motors()
@@ -241,6 +240,10 @@ class AutonomousController(object):
 
         tgt_hdg = self.__heading + relative_angle
         return tgt_hdg
+    
+    def get_timer(self):
+        return self.__timer
+    
     def __select_action(self):
         delta_angle = max(self.__desired_heading, self.__heading) - min(self.__desired_heading, self.__heading)
         
@@ -276,24 +279,30 @@ class AutonomousController(object):
 
         pass
 
-    def driveForTime(self, duration:float=1, direction:str="forward", speed:float=100):
-        assert direction in ["forward", "reverse", "left", "right"]
-        if(direction=="forward"):
+    def driveForTime(self, start_time:float=1, direction:str="forward", speed:float=100):
+        assert direction in ["forward", "reverse", "left", "right", "stop", "wall_left", "wall_forward"]
+        if((direction=="forward") & (self.__timer >= start_time)):
             self.drive_motors(speed, speed)
-        elif(direction=="reverse"):
+        elif((direction=="reverse") & (self.__timer >= start_time)):
             self.drive_motors(speed, speed)
-        elif(direction=="left"):
+        elif((direction=="left") & (self.__timer >= start_time)):
             self.drive_motors(0.05*speed, speed)
             # self.drive_motors(5, speed)
-        elif(direction=="right"):
+        elif((direction=="right") & (self.__timer >= start_time)):
             self.drive_motors(speed, 0.05*speed)
             # self.drive_motors(speed,5)
+        elif((direction=="stop") & (self.__timer >= start_time)):
+            self.drive_motors(0,0)
+            # self.drive_motors(speed,5)
+        elif((direction=="wall_left") & (self.__timer >= start_time)):
+            self.drive_motors(0.075*speed, speed)
+            # self.drive_motors(5, speed)
+        elif((direction=="wall_forward") & (self.__timer >= start_time)):
+            self.drive_motors(0.5*speed, speed)
+            # self.drive_motors(5, speed)
         else:
             #something went wrong
             pass
-        time.sleep(duration) #in seconds
-        self.stop_drive_motors()
-        time.sleep(0.01)
 
 if __name__ == "__main__":
     autonomousController = AutonomousController()
@@ -304,15 +313,16 @@ if __name__ == "__main__":
         print("loop!")
         if(autonomousController.get_on_state()):
             print(autonomousController.get_on_state(), end='|')
-            print(autonomousController.get_current_time())
-
-            
-            autonomousController.driveForTime(4, "forward", 50)
-
+            print(autonomousController.get_timer())
             autonomousController.start_intake(75)
-            
-            
+            autonomousController.driveForTime(0.0, "wall_forward", 70)
+            autonomousController.driveForTime(2.0, "wall_left", 100)
+            autonomousController.driveForTime(5.5, "forward", 100)
+            autonomousController.driveForTime(6.5, "right", 100)
+            autonomousController.driveForTime(10.5, "forward", 100)
+            autonomousController.driveForTime(12.5, "left", 100)
+            autonomousController.driveForTime(16.5, "forward", 100)
         else:
             autonomousController.stop_motors()
-        time.sleep(1)
+        time.sleep(0.1)
     # autonomousController.decide()
