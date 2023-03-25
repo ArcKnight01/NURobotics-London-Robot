@@ -24,9 +24,14 @@ class ImageProcessor():
         #create image save directory
         self.__image_dir = pathlib.Path(log_dir,'Frames')
         if(self.__image_dir.exists() == False):
-            print(f"{self.__image_dir} does not exist, creating directory.")
+            print(f"[INFO] {self.__image_dir} does not exist, creating directory.")
         self.__image_dir.mkdir(parents=True, exist_ok=True)
     
+    # ------------------------------------------------------------------------ #
+    # Run an iteration of the image processor. 
+    # The sim version needs the robot_state (a dictionary of values from the ADCS System) ot generate simulated imagery (Deprecated)
+    # the PICAM does not need any robot_state input
+    # ------------------------------------------------------------------------ #
     def run(self):
         try:
             self.__camera.start_preview()
@@ -43,7 +48,9 @@ class ImageProcessor():
         #detect APRIL TAGS
         detected, image, tagFamilies, tagIds, centers, angles, corners = detect_apriltags(image)
         if(detected == True):
-            print(f"TAG(s) DETECTED!")
+            print(f"TAG(s) DETECTED:")
+            for tagId in tagIds:
+                print(tagId)
         else:
             print(f"NO TAG(s) DETECTED!")
         #detect SPHERES
