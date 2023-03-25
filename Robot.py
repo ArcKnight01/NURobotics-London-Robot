@@ -3,6 +3,7 @@ from gpiozero import Motor
 from gpiozero import Servo
 from gpiozero import RGBLED
 from gpiozero import DistanceSensor
+from gpiozero import Button
 from colorzero import Color
 from picamera import PiCamera
 from signal import pause
@@ -45,20 +46,24 @@ class Robot(object):
         self.__orientation = orientation
 
         #Initialize devices
-        self.__motor1 = Motor(forward= motor1_pins[0], backward= motor1_pins[1], enable= motor1_pins[2], pwm=True) #left front
-        self.__motor2 = Motor(forward= motor2_pins[0], backward= motor2_pins[1], enable= motor2_pins[2], pwm=True) #left back
-        self.__motor3 = Motor(forward= motor3_pins[0], backward= motor3_pins[1], enable= motor3_pins[2], pwm=True) #right front
-        self.__motor4 = Motor(forward= motor4_pins[0], backward= motor4_pins[1], enable= motor4_pins[2], pwm=True) #right back
-        self.__motor5 = Motor(forward= motor5_pins[0], backward= motor5_pins[1], enable= motor5_pins[2], pwm=True) #intake left
-        self.__motor6 = Motor(forward= motor6_pins[0], backward= motor6_pins[1], enable= motor6_pins[2], pwm=True) #intake right
-        self.__button = Button(self.__button_pin, pull_up = True)
+        self.__left_front_motor = Motor(forward= left_front_motor_pins[0], backward= left_front_motor_pins[1], enable= left_front_motor_pins[2], pwm=True) #left front
+        self.__left_back_motor = Motor(forward= left_back_motor_pins[0], backward= left_back_motor_pins[1], enable= left_back_motor_pins[2], pwm=True) #left back
+        self.__right_front_motor = Motor(forward= right_front_motor_pins[0], backward= right_front_motor_pins[1], enable= right_front_motor_pins[2], pwm=True) #right front
+        self.__right_back_motor = Motor(forward= right_back_motor_pins[0], backward= right_back_motor_pins[1], enable= right_back_motor_pins[2], pwm=True) #right back
+        self.__left_intake_motor = Motor(forward= left_intake_motor_pins[0], backward= left_intake_motor_pins[1], enable = left_intake_motor_pins[2], pwm=True) #intake left
+        self.__right_intake_motor = Motor(forward= right_intake_motor_pins[0], backward= right_intake_motor_pins[1], enable= right_intake_motor_pins[2], pwm=True) #intake right
+        
+        self.__rgbLED = RGBLED(rgbLED_pins[0],rgbLED_pins[1],rgbLED_pins[2], active_high=True, pwm=True, initial_value=(1,0,0))
+        self.__distance_sensor_left = DistanceSensor(echo=distance_sensor_left_pin[0], trigger=distance_sensor_left_pin[1])
+        self.__distance_sensor_right = DistanceSensor(echo=distance_sensor_right_pin[0], trigger=distance_sensor_right_pin[1])
+        
+        self.__button = Button(button_pin, pull_up = True)
         self.__i2c = busio.I2C(board.SCL, board.SDA)
         self.__imu = adafruit_bno055.BNO055_I2C(self.__i2c)
-        self.__rgb_led = RGBLED(rgb_r,rgb_b,rgb_g, active_high=True, initial_value=(1,0,0), pwm=True)
-        set_rgb_indicator_color(color=(0,0,1))
-
+        
 
         
+
         self.__speed = speed
         self.__history = list()
 
@@ -91,5 +96,6 @@ class Robot(object):
     
     def get_position_from_apriltags(self):
         #TODO implement functionality!
+        pass
     
 

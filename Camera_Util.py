@@ -5,7 +5,7 @@ import sys
 from numpy.core.numeric import ones
 from time import sleep
 import apriltag
-
+import numpy as np
 def sensor_position(pix_x, pix_y, res_x, res_y):
     sensor_width,sensor_height = (0.00368, 0.00276) #mm to meters
     origin = (res_x/2,res_y/2)
@@ -53,7 +53,7 @@ def detect_apriltags(image):
         center.append(center)
         
         #find the angles 
-        a = sensor_position(center[0], center[1], rgb_image.shape[1], rgb_image.shape[0])
+        a = sensor_position(center[0], center[1], image.shape[1], image.shape[0])
         angle = sensor_angle(a[0], a[1], focal_length)
         angles.append(angle)
 

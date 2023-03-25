@@ -22,6 +22,10 @@ class AutonomousController(object):
                 distance_sensor_left_pin = (0,1),
                 distance_sensor_right_pin = (21,16)
                 ):
+
+        self.__heading = None
+        self.__desired_heading = None
+
         self.__motor1 = Motor(forward= motor1_pins[0], backward= motor1_pins[1], enable= motor1_pins[2], pwm=True) #left front
         self.__motor2 = Motor(forward= motor2_pins[0], backward= motor2_pins[1], enable= motor2_pins[2], pwm=True) #left back
         self.__motor3 = Motor(forward= motor3_pins[0], backward= motor3_pins[1], enable= motor3_pins[2], pwm=True) #right front
@@ -35,15 +39,31 @@ class AutonomousController(object):
         self.__distance_sensor_right = DistanceSensor(echo=distance_sensor_right_pin[0], trigger=distance_sensor_right_pin[1])
         # self.__adcs_system = ADCS(test_points=2,verbose=False)
         
+        self.__first_start = True
+        self.__start_time = None
+
+        self.__current_time = time().time()
+        
+        self.__competition_timer = 0.0
+        self.__timer = 0.0
         self.__verbose = True
-        self.__heading = None
-        self.__desired_heading = None
-        self.__on_state = False
+        
+        self.__on_state = False #change to false if you want
         self.__button.when_pressed = self.switchOnState
+
         # self.__speed = None
         # self.__position = None
 
         pass
+    def check_if_endgame(self, threshold)->bool:
+        if self.__competition_timer >= threshold:
+            return(True)
+        else:
+            return(False)
+
+
+    def get_current_time(self):
+        return(self.__current_time)
     
     def initialize(self, robot_state):
         #initialize heading
@@ -51,15 +71,52 @@ class AutonomousController(object):
         self.__speed = robot_state['speed']
         self.__position = robot_state['position']
         self.__desired_heading = robot_state['heading']
+    
 
+    def switchOnState(self):
+        """This function runs whenever the button is pressed"""
+        if(self.__first_start):
+            self.__competition_start_time = time().time()
+            self.__start_time
+            self.__first_start = False
+        
+        print("BUTTON PRESS DETECTED",end=" ")
+        if self.__on_state == True:
+            print("TURNING OFF")
+            self.__on_state = False
+        elif self.__on_state == False:
+            print("TURNING ON")
+            self.__on_state = True
+        
+        self.stop_motors()
+        time.sleep(1)
+    
     def __repr__(self):
-        pass
+
+        return f"nulondon robot"
+
     def update(self):
+        assert self.__first_start == False, "[ERR] Must be run after button press"
+        self.__current_time = time().time()
+        self.__timer = self.__current_time - self.__start_time
+        self.__competition_timer = self.__current_time - self.__competition_start_time
+        
+        
+        if(self.check_if_endgame()):
+            #TODO have robot know to return to start
+            print("[MODE] ENDGAME")
+            pass
+        
+        #Update and get ADCS data
         # self.__adcs_system.update()
+        # print(self.__adcs_system.get_data())
+        
+        #Update and get sonar data, and check for collision
+        # self.getSonarDistances()
         # self.run_avoidance_check(50)
-        self.getSonarDistances()
-        # data = self.__adcs_system.get_data()
-        # print(data)
+        
+       
+        
         pass
         
     def drive_motors(self, left_speed:float=0.0, right_speed:float=0.0):
@@ -68,19 +125,24 @@ class AutonomousController(object):
         self.run_motor(self.__motor3, right_speed, "fwd")
         self.run_motor(self.__motor4, right_speed, "fwd")
 
-    def run_intake(self, speed):
-        self.run_motor(self.__motor6, speed, "fwd")
-        self.run_motor(self.__motor5, speed, "fwd")
+    def start_intake(self, speed:float=75, direction:str="fwd"):
+        assert direction in ["fwd", "rev", "stop"]
+        self.run_motor(self.__motor6, speed, direction)
+        self.run_motor(self.__motor5, speed, direction)
+    
+    def stop_intake(self):
+        self.run_motor(self.__motor6, 0, "stop")
+        self.run_motor(self.__motor5, 0, "stop")
 
     def run_motor(self, motor, speed:float=0.0, motor_direction:str="fwd"):
-        assert (speed >= -100) & (speed <= 100), "ERR: Motor Speed Out of Bounds."
+        assert (speed >= -100) & (speed <= 100), "[ERR] Speed is out of bounds, must be a percent!"
+        assert motor_direction in ['fwd','rev','stop'], "[ERR] Invalid Direction"
         if(motor_direction.lower().strip() == 'rev'):
             speed = speed *-1
         elif(motor_direction.lower().strip() == 'fwd'):
             speed = speed
-        else: 
+        elif(motor_direction.lower().strip() == 'stop'): 
             speed = 0
-        assert (speed >= -100) & (speed <= 100), "[ERROR] Speed is out of bounds, must be a percent!"
         if(speed > 0):
             motor.forward(abs(speed)/100.0)
             if(motor.is_active):
@@ -96,9 +158,7 @@ class AutonomousController(object):
             if(motor.is_active == False):
                 self.__rgbLED.color = (0,0,0)
                 print("[INFO] Motor Stopped.")
-    def drive_fwd_continuosly(self, speed):
-        drive_motors(left_speed=speed,right_speed=speed)
-
+    
     def turn_continously(self, turn_dir:str="clockwise", speed:float=100):
         """
         Turn robot continuously (tank/pivot turn)
@@ -134,7 +194,7 @@ class AutonomousController(object):
             #do something?
             return(False,True)
         elif(left_distance<threshold & right_distance<threshold):
-            stop.drive_motors()
+            self.stop_drive_motors()
             return(False,False)
 
     def get_desired_heading(self):
@@ -146,34 +206,25 @@ class AutonomousController(object):
                                                target_center[1]-self.__position[1]))+360,360)
         return tgt_hdg
     
-    def getButtonState(self)->bool:
+    def get_button_state(self)->bool:
         return(self.__button.is_pressed)
 
-    def getOnState(self)->bool:
+    def get_on_state(self)->bool:
         return(self.__on_state)
     
-    def getSonarDistances(self):
+    def get_distances(self):
         left_distance = 0
         right_distance = 0
 
         left_distance = self.__distance_sensor_left.distance * 100 #cm
         right_distance = self.__distance_sensor_right.distance * 100
         
-        time.sleep(0.3)
+        time.sleep(0.01)
         if(self.__verbose):
             print(f"[DISTANCE SENSOR] Distance (CM): {left_distance} (LEFT), {right_distance} (RIGHT).")
         return(left_distance, right_distance)
         
-    def switchOnState(self):
-        print("BUTTON PRESSED!",end=" ")
-        if self.__on_state == True:
-            print("TURNING OFF")
-            self.__on_state = False
-        elif self.__on_state == False:
-            print("TURNING ON")
-            self.__on_state = True
-
-        time.sleep(1)
+    
     
     def __heading_to_angle(self, target_angles):
         #account for multiple targets? targets would be ping pong balls in this case
@@ -216,14 +267,34 @@ class AutonomousController(object):
                 # self.__heading = #get heading from adcs system
                 #check time, if time is running out use self.__heading_to_position(insert center of arena position here? whatever the final drop off is)
                 print(f"The heading of the robot is {self.__heading}")
-                self.__desired_heading = self.__heading_to_angle(targets) #TODO implement targets (ping pong balls? fiducial/april tag)
+                # self.__desired_heading = self.__heading_to_angle(targets) #TODO implement targets (ping pong balls? fiducial/april tag)
                 self.__select_action() #make this return a command?
-                drive_fwd_continuosly(speed=100)
+                self.drive_fwd_continuosly(speed=100)
                 # turn_continuously(turn_dir="clockwise",speed=100)
             elif(self.__on_state==False):
                 autonomousController.stop
 
         pass
+
+    def driveForTime(self, duration:float=1, direction:str="forward", speed:float=100):
+        assert direction in ["forward", "reverse", "left", "right"]
+        if(direction=="forward"):
+            self.drive_motors(speed, speed)
+        elif(direction=="reverse"):
+            self.drive_motors(speed, speed)
+        elif(direction=="left"):
+            self.drive_motors(0.05*speed, speed)
+            # self.drive_motors(5, speed)
+        elif(direction=="right"):
+            self.drive_motors(speed, 0.05*speed)
+            # self.drive_motors(speed,5)
+        else:
+            #something went wrong
+            pass
+        time.sleep(duration) #in seconds
+        self.stop_drive_motors()
+        time.sleep(0.01)
+
 if __name__ == "__main__":
     autonomousController = AutonomousController()
     
@@ -231,20 +302,15 @@ if __name__ == "__main__":
         # autonomousController.decide()
         autonomousController.update()
         print("loop!")
-        if(autonomousController.getOnState()):
-            print(autonomousController.getOnState(), end='|')
-            print(time.time())
+        if(autonomousController.get_on_state()):
+            print(autonomousController.get_on_state(), end='|')
+            print(autonomousController.get_current_time())
+
             
-            autonomousController.run_intake(75)
+            autonomousController.driveForTime(4, "forward", 50)
+
+            autonomousController.start_intake(75)
             
-            autonomousController.drive_motors(100,5)
-            time.sleep(2.5)
-            autonomousController.stop_motors()
-            time.sleep(1)
-            autonomousController.drive_motors(5,100)
-            time.sleep(2.5)
-            autonomousController.stop_motors()
-            time.sleep(1)
             
         else:
             autonomousController.stop_motors()
