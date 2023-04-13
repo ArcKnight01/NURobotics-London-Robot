@@ -61,7 +61,8 @@ class ImageProcessor():
 
         # log the image
         fn = self.__image_dir / f"frame_{int(datetime.datetime.utcnow().timestamp())}.jpg"
-        print(f"Took image {fn}.")
+        if (self.__verbose ==True):
+            print(f"Took image {fn}.")
         cv2.imwrite(str(fn), image)
 
 if __name__ == '__main__':

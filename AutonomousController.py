@@ -12,6 +12,10 @@ import numpy as np
 from ADCS_System import *
 from Image_Processor import *
 import psutil
+import warnings
+warnings.filterwarnings('ignore')
+
+
 
 class AutonomousController(object):
     def __init__(self,
@@ -46,10 +50,10 @@ class AutonomousController(object):
 
         self.distances = self.get_distances()
         self.ultrasound_enabled = False
-        self.__adcs_enabled = False
+        self.__adcs_enabled = True
         if(self.__adcs_enabled==True):
-            self.__adcs_system = ADCS(test_points=1,verbose=False)
-        self.__image_processor = ImageProcessor('./')
+            self.__adcs_system = ADCS(test_points=1, verbose=False)
+        self.__image_processor = ImageProcessor('./', verbose=False)
         self.__first_start = True
         self.__start_time = None
 
@@ -58,21 +62,18 @@ class AutonomousController(object):
         self.__competition_timer = 0.0
         self.__timer = 0.0
         self.__verbose = verbose
-        self.__camera_enabled = False
+        self.__camera_enabled = True
         
         
         self.__on_state = False #change to false if you want
         self.__button.when_pressed = self.switch_on_state
 
-        # self.__speed = None
-        # self.__position = None
-
-        pass
     def check_if_endgame(self, threshold)->bool:
         if self.__competition_timer >= threshold:
             return(True)
         else:
             return(False)
+        
     def switch_ultrasound_enable(self):
         if(self.ultrasound_enabled ==False):
             self.ultrasound_enabled = True
@@ -116,7 +117,7 @@ class AutonomousController(object):
     
     def __repr__(self):
 
-        return f"nulondon robot"
+        return f"Robot Class"
         
     def drive_motors(self, left_speed:float=0.0, right_speed:float=0.0):
         self.run_motor(self.__motor1, left_speed, "fwd")
@@ -312,7 +313,6 @@ class AutonomousController(object):
             #something went wrong
             pass
         return (start_time + duration)
-        
     
     def retrieve_percentage(self):
         self.__battery = psutil.sensors_battery()
@@ -350,12 +350,10 @@ class AutonomousController(object):
         if(self.__adcs_enabled):
             self.__adcs_system.update()
             self.__raw_accel, self.__acceleration, self.__velocity, self.__position, self.__orientation = self.__adcs_system.get_data()
-            # print(f"Raw:{(round(self.__raw_accel[1:][0],2), round(self.__raw_accel[1:][1],2))}|Accel:{accel[1:]}|Vel:{vel[1:]}|Pos:{pos[1:]}|Rpy:{rpy}")
+            print(f"Raw:{(round(self.__raw_accel[1:][0],2), round(self.__raw_accel[1:][0],2),self.__raw_accel[1:][1])}|Accel:{self.__acceleration[1:]}|Vel:{self.__velocity[1:]}|Pos:{self.__position[1:]}|Rpy:{self.__orientation}")
 
         #Update and get ADCS data
         
-        # self.__adcs_system.update()
-        # print(self.__adcs_system.get_data())
         
         #Update and get sonar data, and check for collision
         self.get_distances()
@@ -380,17 +378,19 @@ if __name__ == "__main__":
             print(f"timer:{autonomousController.get_timer()}-s", end='|')
             print(f"c_timer{autonomousController.get_competition_timer()}-s", end='|')
             if(motor_enable == True):
-                autonomousController.start_intake(95)
+                # autonomousController.start_intake(100, direction="rev")
+                # timestamp = autonomousController.driveForTime(0, "reverse", 100, 10)
+                # sys.exit(0)
                 timestamp = autonomousController.driveForTime(0, "wall_forward", 65, 1.75)
-                timestamp = autonomousController.driveForTime(timestamp, "wall_left", 100, 3.25)
-                timestamp = autonomousController.driveForTime(timestamp, "forward", 100, 0.75)
-                timestamp = autonomousController.driveForTime(timestamp, "right", 100, 3.75)
-                timestamp = autonomousController.driveForTime(timestamp, "forward", 100, 0.75)
-                timestamp = autonomousController.driveForTime(timestamp, "left", 100, 3.75)
-                timestamp = autonomousController.driveForTime(timestamp, "forward", 100,0.5 )
-                timestamp = autonomousController.driveForTime(timestamp, "left", 100, 0.5)
-                timestamp = autonomousController.driveForTime(timestamp, "forward", 100, 0.5)
-                timestamp = autonomousController.driveForTime(timestamp, "left", 100, 120-timestamp)
+                # timestamp = autonomousController.driveForTime(timestamp, "wall_left", 100, 3.25)
+                # timestamp = autonomousController.driveForTime(timestamp, "forward", 100, 0.75)
+                # timestamp = autonomousController.driveForTime(timestamp, "right", 100, 3.75)
+                # timestamp = autonomousController.driveForTime(timestamp, "forward", 100, 0.75)
+                # timestamp = autonomousController.driveForTime(timestamp, "left", 100, 3.75)
+                # timestamp = autonomousController.driveForTime(timestamp, "forward", 100,0.5 )
+                # timestamp = autonomousController.driveForTime(timestamp, "left", 100, 0.5)
+                # timestamp = autonomousController.driveForTime(timestamp, "forward", 100, 0.5)
+                # timestamp = autonomousController.driveForTime(timestamp, "left", 100, 120-timestamp)
         else:
             autonomousController.stop_motors()
             
