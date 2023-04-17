@@ -1,3 +1,4 @@
+from Servo_Motors import ServoMotor 
 from gpiozero import LED
 from gpiozero import Motor
 from gpiozero import Servo
@@ -5,6 +6,7 @@ from gpiozero import RGBLED
 from gpiozero import DistanceSensor
 from gpiozero import Button
 from colorzero import Color
+from gpiozero import Servo 
 from picamera import PiCamera
 from signal import pause
 import sys
@@ -22,6 +24,7 @@ import numpy as np
 import matplotlib.pyplot as plt 
 # import pandas as pd
 import datetime
+
 
 class Robot(object):
     def __init__(self, 
@@ -61,6 +64,7 @@ class Robot(object):
         self.__i2c = busio.I2C(board.SCL, board.SDA)
         self.__imu = adafruit_bno055.BNO055_I2C(self.__i2c)
         
+        self.__mount_base_servo = ServoMotor()
 
         
 
