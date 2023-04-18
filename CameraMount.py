@@ -10,9 +10,13 @@ class CameraMount:
         self.__bottom_servo.rotateToDegree(bottom_servo_deg)
         time.sleep(0.001)
 
+    
+
 if __name__ == '__main__':
     cameraMount = CameraMount(9,10)
+    cameraMount.moveToSphericalCoordinate(0,0)
     while(True):
         top_deg = int(input("top:"))
         bottom_deg = int(input("bottom:"))
-        cameraMount.moveToSphericalCoordinate(90,90)
+        cameraMount.moveToSphericalCoordinate(top_deg,bottom_deg)
+        time.sleep(0.01)

@@ -11,6 +11,10 @@ import time
 import numpy as np
 from ADCS_System import *
 from Image_Processor import *
+from DCMotors import *
+from Sonar import Sonar
+from Servo_Motors import ServoMotor
+from RGB_Indicator import RGB_Indicator
 import psutil
 import warnings
 warnings.filterwarnings('ignore')
@@ -30,29 +34,34 @@ class AutonomousController(object):
                 rgb_pins = (23,24,25),
                 button_pin = 4,
                 distance_sensor_left_pin = (0,1),
-                distance_sensor_right_pin = (21,16)
+                distance_sensor_right_pin = (21,16),
+                top_servo_pin = 9,
+                bottom_servo_pin = 10,
                 ):
 
         self.__heading = None
         self.__desired_heading = None
-
-        self.__motor1 = Motor(forward= motor1_pins[0], backward= motor1_pins[1], enable= motor1_pins[2], pwm=True) #left front
-        self.__motor2 = Motor(forward= motor2_pins[0], backward= motor2_pins[1], enable= motor2_pins[2], pwm=True) #left back
-        self.__motor3 = Motor(forward= motor3_pins[0], backward= motor3_pins[1], enable= motor3_pins[2], pwm=True) #right front
-        self.__motor4 = Motor(forward= motor4_pins[0], backward= motor4_pins[1], enable= motor4_pins[2], pwm=True) #right back
-        self.__motor5 = Motor(forward= motor5_pins[0], backward= motor5_pins[1], enable = motor5_pins[2], pwm=True) #intake left
-        self.__motor6 = Motor(forward= motor6_pins[0], backward= motor6_pins[1], enable= motor6_pins[2], pwm=True) #intake right
+        self.__rgbLED = RGB_Indicator(enable=True, verbose=False, red_pin=rgb_pins[0], green_pin=rgb_pins[1], blue_pin=rgb_pins[2],pwm=True, initial_color=(255,0,0))
         
-        self.__rgbLED = RGBLED(rgb_pins[0],rgb_pins[1],rgb_pins[2], active_high=True, pwm=True, initial_value=(1,0,0))
+        self.__motor1 = DCMotor(verbose=False, enabled=True, pins=motor1_pins, rgbLED=self.__rgbLED)
+        self.__motor2 = DCMotor(verbose=False, enabled=True, pins=motor2_pins, rgbLED=self.__rgbLED)
+        self.__motor3 = DCMotor(verbose=False, enabled=True, pins=motor3_pins, rgbLED=self.__rgbLED)
+        self.__motor4 = DCMotor(verbose=False, enabled=True, pins=motor4_pins, rgbLED=self.__rgbLED)
+        self.__motor5 = IntakeMotor(verbose=False, enabled=False, pins=motor1_pins, rgbLED=self.__rgbLED)
+        self.__motor6 = IntakeMotor(verbose=False, enabled=False,  pins=motor1_pins, rgbLED=self.__rgbLED)
+        
         self.__button = Button(button_pin)
-        self.__distance_sensor_left = DistanceSensor(echo=distance_sensor_left_pin[0], trigger=distance_sensor_left_pin[1])
-        self.__distance_sensor_right = DistanceSensor(echo=distance_sensor_right_pin[0], trigger=distance_sensor_right_pin[1])
+        # self.__distance_sensor_left = DistanceSensor(echo=distance_sensor_left_pin[0], trigger=distance_sensor_left_pin[1])
+        # self.__distance_sensor_right = DistanceSensor(echo=distance_sensor_right_pin[0], trigger=distance_sensor_right_pin[1])
 
-        self.distances = self.get_distances()
-        self.ultrasound_enabled = False
-        self.__adcs_enabled = True
-        if(self.__adcs_enabled==True):
-            self.__adcs_system = ADCS(test_points=1, verbose=False)
+        self.__sonar_left = Sonar(verbose=False, enable=True, echo_pin= distance_sensor_left_pin[0], trig_pin=distance_sensor_left_pin[1])
+        self.__sonar_right = Sonar(verbose=False, enable=True, echo_pin= distance_sensor_right_pin[0], trig_pin=distance_sensor_right_pin[1])
+
+        # self.distances = self.get_distances()
+        # self.ultrasound_enabled = False
+        
+        
+        self.__adcs_system = ADCS(test_points=5, verbose=False, enabled=True)
         self.__image_processor = ImageProcessor('./', verbose=False)
         self.__first_start = True
         self.__start_time = None

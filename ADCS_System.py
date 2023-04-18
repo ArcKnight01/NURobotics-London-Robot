@@ -8,12 +8,13 @@ from ADCS_Util import *
 import csv
 
 class ADCS(object):
-    def __init__(self, test_points:int=10, verbose:bool=False):
+    def __init__(self, test_points:int=10, verbose:bool=False, enabled:bool=True):
         #Set number of test points for calibration
         self.__test_points = test_points
         #Determine whether the ADCS System will print testing data to terminal
         self.__verbose = verbose
-
+        self.__enabled = enabled
+        
         #Declare the sensor device
         self.__i2c = busio.I2C(board.SCL, board.SDA)
         self.__sensor = adafruit_bno055.BNO055_I2C(self.__i2c)

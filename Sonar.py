@@ -3,7 +3,7 @@ from gpiozero import DistanceSensor
 import time
 
 class Sonar(Sensor):
-    def __init__(self, verbose=False, enable=True, trig_pin=0, echo_pin=1):
+    def __init__(self, verbose=False, enable=True, echo_pin=0, trig_pin=1):
         super().__init__(verbose=verbose, enable=enable)
         if self.__enable == True:
             self.__sensor = DistanceSensor(echo=echo_pin, trig=trig_pin)
