@@ -34,7 +34,7 @@ class CameraMount:
             self.moveToSphericalCoordinate(currentTopDeg, 90)
         elif(self.__counter == 8):
             self.moveToSphericalCoordinate(currentTopDeg, 0)
-        
+        time.sleep(1)
         self.__counter+=1
         if (self.__counter >= 8):
             self.__counter = 0
