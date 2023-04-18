@@ -137,9 +137,9 @@ def detect_buoys(img):
     rgb_image = np.flip(img, axis=2) 
     # rgb_image = np.flip(rgb_image, 0)
 
-    r_red_range = (40,100)
-    r_green_range = (75,120)
-    r_blue_range = (180,240)
+    r_red_range = (30,200)
+    r_green_range = (50,120)
+    r_blue_range = (100,240)
 
     # g_red_range = (8,50)
     # g_green_range = (150,255)
