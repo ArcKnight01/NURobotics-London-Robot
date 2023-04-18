@@ -8,7 +8,7 @@ class RGB_Indicator(object):
         self.__rgbLED = RGBLED(red_pin,green_pin,blue_pin, active_high=True, pwm=True, initial_value=self.__unit_color)
 
     def __repr__(self):
-        return(f"")
+        return(f"{self.__color}")
 
     def set_color(self, r:int=None, g:int=None, b:int=None, color:tuple=None, default_color:tuple=(255,0,0)):
         assert ((r and g and b) or (color)) and not ((r or g or b) and (color)), ValueError
