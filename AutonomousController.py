@@ -365,7 +365,7 @@ if __name__ == "__main__":
     
     while(True):
         # autonomousController.decide()
-        automatic_start=False #change in comp
+        automatic_start=True #change in comp
         motor_enable = True
         print() #new line
         print("l", end='>')
