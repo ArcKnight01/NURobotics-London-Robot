@@ -112,6 +112,7 @@ class AutonomousController(object):
             self.__start_time = time.time()
             self.__on_state = True
         
+        self.__on_state = True
         self.stop_motors()
         time.sleep(1)
     
@@ -352,8 +353,6 @@ class AutonomousController(object):
             self.__raw_accel, self.__acceleration, self.__velocity, self.__position, self.__orientation = self.__adcs_system.get_data()
             print(f"Raw:{(round(self.__raw_accel[1:][0],2), round(self.__raw_accel[1:][0],2),self.__raw_accel[1:][1])}|Accel:{self.__acceleration[1:]}|Vel:{self.__velocity[1:]}|Pos:{self.__position[1:]}|Rpy:{self.__orientation}")
 
-        #Update and get ADCS data
-        
         
         #Update and get sonar data, and check for collision
         self.get_distances()

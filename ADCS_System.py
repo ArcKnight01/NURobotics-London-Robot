@@ -300,7 +300,7 @@ class ADCS(object):
         return(self.__currentTime, self.__raw_acceleration, self.__acceleration, self.__velocity, self.__position, self.__orientation)
 
     def init_csv(self):
-        with open('imu_data.csv', 'w') as csvfile:
+        with open('./imu_data.csv', 'w') as csvfile:
             data = csv.writer(csvfile, delimiter =',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
             data.writerow(['Time','AccelX', 'AccelY','AccelZ', 'VelX', 'VelY', 'VelZ', 'PosX', 'PosY', 'PosZ', 'Roll', 'Pitch', 'Yaw'])
 
@@ -311,7 +311,7 @@ class ADCS(object):
         posX, posY, posZ = position
         roll, pitch, yaw = orientation
         self.__data = [time, accelX, accelY, accelZ, velX, velY, velZ, posX, posY, posZ, roll, pitch, yaw]
-        with open('imu_data.csv', 'a') as csvfile:
+        with open('./imu_data.csv', 'a') as csvfile:
             data = csv.writer(csvfile, delimiter =',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
             data.writerow(self.__data)
         self.__data = []
@@ -335,6 +335,7 @@ if __name__ == '__main__':
         imu.update()
         imu.add_to_csv()
         t, raw, accel, vel, pos, rpy = imu.get_data()
+        print(imu.get_data())
         # print(f"Raw:{(round(raw[1:][0],2), round(raw[1:][1],2))}|Accel:{(round(accel[1:][0],2),}|Vel:{vel}|Pos:{pos}|Rpy:{rpy}")
 
         pass
