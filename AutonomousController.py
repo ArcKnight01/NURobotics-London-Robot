@@ -350,6 +350,7 @@ class AutonomousController(object):
         
         if(self.__adcs_enabled):
             self.__adcs_system.update()
+            self.__adcs_system.add_to_csv()
             # self.__raw_accel, self.__acceleration, self.__velocity, self.__position, self.__orientation = self.__adcs_system.get_data()
             # print(f"Raw:{(round(self.__raw_accel[1:][0],2), round(self.__raw_accel[1:][0],2),self.__raw_accel[1:][1])}|Accel:{self.__acceleration[1:]}|Vel:{self.__velocity[1:]}|Pos:{self.__position[1:]}|Rpy:{self.__orientation}")
 
