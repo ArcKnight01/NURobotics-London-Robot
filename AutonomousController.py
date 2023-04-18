@@ -15,6 +15,8 @@ from DCMotors import *
 from Sonar import Sonar
 from Servo_Motors import ServoMotor
 from RGB_Indicator import RGB_Indicator
+from CameraMount import CameraMount
+
 import psutil
 import warnings
 warnings.filterwarnings('ignore')
@@ -35,8 +37,8 @@ class AutonomousController(object):
                 button_pin = 4,
                 distance_sensor_left_pin = (0,1),
                 distance_sensor_right_pin = (21,16),
-                top_servo_pin = 9,
-                bottom_servo_pin = 10,
+                top_servo_pin = 10,
+                bottom_servo_pin = 9,
                 ):
 
         self.__heading = None
@@ -60,9 +62,9 @@ class AutonomousController(object):
         # self.distances = self.get_distances()
         # self.ultrasound_enabled = False
         
-        
-        self.__adcs_system = ADCS(test_points=5, verbose=False, enabled=True)
-        self.__image_processor = ImageProcessor('./', verbose=False)
+        self.__camera_mount = CameraMount(top_servo_pin, bottom_servo_pin)
+        self.__adcs_system = ADCS(test_points=5, verbose=True, enabled=True)
+        self.__image_processor = ImageProcessor('./', verbose=False, enabled=True)
         self.__first_start = True
         self.__start_time = None
 

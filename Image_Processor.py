@@ -12,7 +12,7 @@ import picamera
 print(f"{os.uname()}")
 from Camera_Util import detect_apriltags
 from Camera_Util import detect_spheres
-
+from Camera_Util import detect_buoys
 class ImageProcessor():
     def __init__(self, log_dir:str='./', verbose:bool=False, enabled:bool=True):
         self.__camera = picamera.PiCamera()
@@ -33,6 +33,7 @@ class ImageProcessor():
     # The sim version needs the robot_state (a dictionary of values from the ADCS System) ot generate simulated imagery (Deprecated)
     # the PICAM does not need any robot_state input
     # ------------------------------------------------------------------------ #
+    reds = []
     def run(self):
         if(self.__enabled):
             try:
@@ -46,7 +47,10 @@ class ImageProcessor():
                 time.sleep(0.05) # camera warmup time
                 
             image = self.__image.reshape((480, 640, 3))
-            
+            reds = detect_buoys(image)
+            if len(reds) != 0: 
+                for red in reds:
+                    print(f"RED DETECTED at {red}")
             #detect APRIL TAGS
             detected, image, tagFamilies, tagIds, centers, angles, corners = detect_apriltags(image)
             if(detected == True):
@@ -58,6 +62,8 @@ class ImageProcessor():
             else:
                 
                 print(f"NO TAG(s) DETECTED!")
+
+            
             #detect SPHERES
             # detect_spheres(image)
 
