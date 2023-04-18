@@ -15,5 +15,4 @@ class Battery(object):
         if(self.__enable):
             return(self.__percent)
         
-    # def retrieve_ti
         
