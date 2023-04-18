@@ -11,7 +11,6 @@ import os
 import picamera
 print(f"{os.uname()}")
 from Camera_Util import detect_apriltags
-from Camera_Util import detect_spheres
 from Camera_Util import detect_buoys
 class ImageProcessor():
     def __init__(self, log_dir:str='./', verbose:bool=False, enabled:bool=True):
