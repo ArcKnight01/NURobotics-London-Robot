@@ -45,7 +45,7 @@ class ADCS(object):
         #zero the orientation to intitial orientation of robot
         
         #time stuff
-        self.__startTime, self.__initial_startTime = time.time()
+        self.__startTime = self.__initial_startTime = time.time()
         self.__currentTime = time.time() - self.__startTime
 
         #initialize the csv-data file
