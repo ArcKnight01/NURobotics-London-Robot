@@ -47,7 +47,8 @@ if __name__ == '__main__':
     cameraMount.moveToSphericalCoordinate(0,0)
     while(True):
         print(f"Top,Bottom={cameraMount.getSphericalCoordinates()}")
-        top_deg = int(input("top:"))
-        bottom_deg = int(input("bottom:"))
-        cameraMount.moveToSphericalCoordinate(top_deg,bottom_deg)
+        # top_deg = int(input("top:"))
+        # bottom_deg = int(input("bottom:"))
+        # cameraMount.moveToSphericalCoordinate(top_deg,bottom_deg)
+        cameraMount.revolve()
         time.sleep(0.01)
