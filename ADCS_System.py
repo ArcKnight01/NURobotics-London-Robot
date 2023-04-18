@@ -20,32 +20,34 @@ class ADCS(object):
         self.__position = (0,0,0)
         
         self.__accelerometer_offset = self.calibrate_accelerometer()
-        self.__offset_mag = self.calibrate_mag()
+
+        self.__mag_offset = self.calibrate_mag()
+
         self.__gyro_offset = self.calibrate_gyro()
         
-        self.__initial_orientation = self.set_initial(self.__offset_mag)
-
-        self.__orientation = self.__initial_orientation
-        self.__previous_orientation = self.__initial_orientation
+        self.__previous_orientation = self.__orientation = self.__initial_orientation = self.set_initial(self.__mag_offset)
 
         self.__orientation_zeroed = self.zero_orientation()
         #zero the orientation to intitial orientation of robot
         
-        
-        self.__startTime = time.time()
+        self.__startTime, self.__initial_startTime = time.time()
         self.__currentTime = time.time() - self.__startTime
         self.init_csv()
 
     def update(self):
-        self.__currentTime = time.time() - self.__startTime
+        #Raw Data
+        self.__currentTime = time.time() - self.__initial_startTime
         self.__euler = self.__sensor.euler
         self.__quaternion = self.__sensor.quaternion
         self.__linear_acceleration = self.__sensor.linear_acceleration
         self.__gravity = self.__sensor.gravity
         self.__raw_acceleration = self.__sensor.acceleration
-        
         self.__magnetometer = self.__sensor.magnetic
-        self.__magnetometer = (self.__magnetometer[0] - self.__offset_mag[0], self.__magnetometer[1] - self.__offset_mag[1], self.__magnetometer[2] - self.__offset_mag[2])
+
+        self.__magnetometer = (self.__magnetometer[0] - self.__mag_offset[0], 
+                               self.__magnetometer[1] - self.__mag_offset[1], 
+                               self.__magnetometer[2] - self.__mag_offset[2]
+                               )
 
         gyroX, gyroY, gyroZ = self.__gyro = self.__sensor.gyro
 

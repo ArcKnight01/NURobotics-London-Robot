@@ -41,10 +41,12 @@ class Robot(object):
                 rgbLED_pins = (23,24,25),
                 button_pin = 4,
                 distance_sensor_left_pin = (0,1),
-                distance_sensor_right_pin = (21,16)
+                distance_sensor_right_pin = (21,16),
+                servo_pin_1 = 9,
+                servo_pin_2 = 10
                 ):
 
-        self.__timestamp = datetime.datetime.utcnow().timesatamp()
+        self.__timestamp = datetime.datetime.utcnow().timestamp()
         self.__location = location
         self.__orientation = orientation
 
@@ -65,6 +67,7 @@ class Robot(object):
         self.__imu = adafruit_bno055.BNO055_I2C(self.__i2c)
         
         self.__mount_base_servo = ServoMotor()
+        self.__mount_camera_servo = ServoMotor()
 
         
 
