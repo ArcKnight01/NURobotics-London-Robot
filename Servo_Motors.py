@@ -21,7 +21,10 @@ class ServoMotor(object):
         else:
             self.__value = self.__degree/180.0 
             self.__servoMotor.value = self.__value
-
+    
+    def get_degree(self):
+        return(self.__degree)
+    
     def resetToInitial(self):
         self.rotateToDegree(self.__initial_degree)
 
