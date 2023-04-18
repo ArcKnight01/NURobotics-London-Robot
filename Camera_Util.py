@@ -79,17 +79,6 @@ def detect_apriltags(image):
         print(f"[INFO tag id {tagId}]")
         tagIds.append(tagId)
     
-    # show the output image after AprilTag detection
-    # cv2.imshow("Image", image)
-    # cv2.waitKey(0)
-    # save the image
-    # cv2.imwrite(f"{filename}-saved.jpg", image)
-    
     tag_detected = True if len(results) != 0 else False
     return tag_detected, image, tagFamilies, tagIds, centers, angles, corners
     
-
-
-def detect_spheres():
-
-    pass
