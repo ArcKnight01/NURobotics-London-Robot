@@ -33,9 +33,11 @@ class ADCS(object):
         
         
         self.__startTime = time.time()
+        self.__currentTime = time.time() - self.__startTime
         self.init_csv()
 
     def update(self):
+        self.__currentTime = time.time() - self.__startTime
         self.__euler = self.__sensor.euler
         self.__quaternion = self.__sensor.quaternion
         self.__linear_acceleration = self.__sensor.linear_acceleration
@@ -133,7 +135,7 @@ class ADCS(object):
         self.__delta_velocity = (self.__velocity[0] - self.__previous_velocity[0],self.__velocity[1] - self.__previous_velocity[1],self.__velocity[2] - self.__previous_velocity[2])
         #update position
         self.__position = (self.__position[0] + self.__delta_velocity[0]*dt, self.__position[1] + self.__delta_velocity[1]*dt, self.__position[2]  +self.__delta_velocity[2]*dt)
-        self.__data = []
+        
         
         if(self.__verbose):
             print(f"[INFO] Raw Acceleration {self.__raw_acceleration}")
@@ -295,20 +297,20 @@ class ADCS(object):
         return ([(180/np.pi)*rollN,(180/np.pi)*pitchN,(180/np.pi)*yawN])
 
     def get_data(self):
-        return(self.__raw_acceleration, self.__acceleration, self.__velocity, self.__position, self.__orientation)
+        return(self.__currentTime, self.__raw_acceleration, self.__acceleration, self.__velocity, self.__position, self.__orientation)
 
     def init_csv(self):
         with open('auv_data.csv', 'w') as csvfile:
             data = csv.writer(csvfile, delimiter =',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-            data.writerow(['AccelX', 'AccelY','AccelZ', 'VelX', 'VelY', 'VelZ', 'PosX', 'PosY', 'PosZ', 'Roll', 'Pitch', 'Yaw'])
+            data.writerow(['Time','AccelX', 'AccelY','AccelZ', 'VelX', 'VelY', 'VelZ', 'PosX', 'PosY', 'PosZ', 'Roll', 'Pitch', 'Yaw'])
 
     def add_to_csv(self):
-        _, acceleration, velocity, position, orientation = self.get_data()
+        time, _, acceleration, velocity, position, orientation = self.get_data()
         accelX, accelY, accelZ = acceleration
         velX, velY, velZ = velocity
         posX, posY, posZ = position
         roll, pitch, yaw = orientation
-        self.__data = [accelX, accelY, accelZ, velX, velY, velZ, posX, posY, posZ, roll, pitch, yaw]
+        self.__data = [time, accelX, accelY, accelZ, velX, velY, velZ, posX, posY, posZ, roll, pitch, yaw]
         with open('auv_data.csv', 'a') as csvfile:
             data = csv.writer(csvfile, delimiter =',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
             data.writerow(self.__data)
@@ -332,7 +334,7 @@ if __name__ == '__main__':
     while(True):
         imu.update()
         imu.add_to_csv()
-        raw, accel, vel, pos, rpy = imu.get_data()
+        t, raw, accel, vel, pos, rpy = imu.get_data()
         # print(f"Raw:{(round(raw[1:][0],2), round(raw[1:][1],2))}|Accel:{(round(accel[1:][0],2),}|Vel:{vel}|Pos:{pos}|Rpy:{rpy}")
 
         pass
