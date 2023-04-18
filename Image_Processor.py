@@ -73,5 +73,5 @@ class ImageProcessor():
             cv2.imwrite(str(fn), image)
 
 if __name__ == '__main__':
-    imageprocessor = ImageProcessor(log_dir='/home/pi/NuRobotics/')
+    imageprocessor = ImageProcessor(log_dir='./')
     imageprocessor.run()
