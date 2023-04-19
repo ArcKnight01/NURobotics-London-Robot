@@ -4,7 +4,7 @@ from RGB_Indicator import RGB_Indicator
 class DCMotor(object):
     def __init__(self, verbose:bool=False, enabled:bool=True, pins:list=(15,14,18), pwm:bool=True, rgbLED:RGB_Indicator=RGB_Indicator(enable=True, verbose=True, red_pin=23, green_pin=24, blue_pin=25)):
         self.__motor = Motor(forward= pins[0], backward= pins[1], enable= pins[2], pwm=True) #left front
-        self.__rgbLED = rgbLED
+        # self.__rgbLED = rgbLED
         self.__verbose = verbose
         self.__enabled = enabled
         pass
@@ -26,17 +26,17 @@ class DCMotor(object):
             if(speed > 0):
                 self.__motor.forward(abs(speed)/100.0)
                 if(self.__motor.is_active):
-                    # print("[INFO] Motor Forward.")
-                    self.__rgbLED.set_color(0,0,255)
+                    print("[INFO] Motor Forward.")
+                    # self.__rgbLED.set_color(0,0,255)
             elif(speed <0):
                 self.__motor.backward(abs(speed)/100.0)
                 if(self.__motor.is_active):
-                    # print("[INFO] Motor Reverse.")
-                    self.__rgbLED.set_color(color=(255,0,0))  
+                    print("[INFO] Motor Reverse.")
+                    # self.__rgbLED.set_color(color=(255,0,0))  
             elif(speed==0):
                 self.__motor.stop()
                 if(self.__motor.is_active == False):
-                    self.__rgbLED.set_color(0,0,0)
+                    # self.__rgbLED.set_color(0,0,0)
                     if(self.__verbose==True):
                         print("[INFO] Motor Stopped.")
 
