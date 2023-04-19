@@ -4,7 +4,7 @@ from matplotlib import cm
 import sys
 from numpy.core.numeric import ones
 from time import sleep
-import apriltag
+# import apriltag
 import numpy as np
 def sensor_position(pix_x, pix_y, res_x, res_y):
     sensor_width,sensor_height = (0.00368, 0.00276) #mm to meters
@@ -91,7 +91,7 @@ def find_centers(filter_image, rgb_image, thresh):
 
     object_detection_surface = object_detection_surface * 255/np.max(object_detection_surface)
     # threshold = thresh * 255 / np.max(object_detection_surface)
-
+    
     img8 = object_detection_surface.astype(np.uint8)
 
     threshold, img_out = cv2.threshold(img8, thresh, 255, cv2.THRESH_BINARY)
@@ -113,11 +113,16 @@ def find_centers(filter_image, rgb_image, thresh):
         b = sensor_angle(a[0], a[1], focal_length)
         
         angles.append(b)
+    # if(True):
+    #     plt.imshow(object_detection_surface)
+    #     plt.pause(1)
+    #     plt.draw()
+    #     plt.plot()
     return centers, angles
 
 def get_ranges(red_range, green_range, blue_range, rgb_image):
     rgb_filt = cv2.boxFilter(rgb_image, -1, (9,9))
-
+    
     red_filt = rgb_filt[:,:,0]
     green_filt = rgb_filt[:,:,1]
     blue_filt = rgb_filt[:,:,2]
@@ -137,9 +142,9 @@ def detect_buoys(img):
     rgb_image = np.flip(img, axis=2) 
     # rgb_image = np.flip(rgb_image, 0)
 
-    r_red_range = (200,255)
+    r_red_range = (150,255)
     r_green_range = (0,70)
-    r_blue_range = (0,50)
+    r_blue_range = (0,70)
 
     # g_red_range = (8,50)
     # g_green_range = (150,255)
@@ -152,24 +157,32 @@ def detect_buoys(img):
     # greens_centers, green_angles = find_centers(img_thresh_green, rgb_image, 15)
     #comment out green_centers, reds_centers when not testing
     # return green_angles, reds_angles, #greens_centers, reds_centers
+    
     return reds_angles, reds_centers
 # #comment out the below when not testing camera:
-if (__name__=='__main__') & (False):
+if (__name__=='__main__') & (True):
     fig, ax = plt.subplots()
-    for frame_num in range(1, 3):
-        
-        img = cv2.imread(f'./Frames/frame_{frame_num}.jpg') 
-        
-        r_angles, r_centers = detect_buoys(img)
-
-        img = np.flip(img, axis=2)
-        # print(frame_num)
-        print('\n')
-        print(r_angles)
-        ax.clear()
-        ax.imshow(img)
-        print(r_centers)
-        if len(r_centers) != 0:
-            ax.plot(r_centers[0][0], r_centers[0][1], 'ro')
-        plt.pause(1)
-        plt.draw()
+    repeat=True
+    while(repeat==True):
+        for frame_num in range(1681891319, 1681891561):
+            
+            img = cv2.imread(f'./Frames/frame_{frame_num}.jpg') 
+            if img is not None:
+                r_angles, r_centers = detect_buoys(img)
+                if(len(r_angles)!=0):
+                    print("Detected")
+                else:
+                    print("Not detected")
+                img = np.flip(img, axis=2)
+                print(frame_num)
+                print('\n')
+                print(r_angles)
+                ax.clear()
+                ax.imshow(img)
+                print(r_centers)
+                if len(r_centers) != 0:
+                    ax.plot(r_centers[0][0], r_centers[0][1], 'ro')
+                plt.pause(1)
+                
+                plt.draw()
+                
