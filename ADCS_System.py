@@ -112,8 +112,9 @@ class ADCS(object):
                        self.__gyro[2] *180/np.pi - self.__gyro_offset[2])
         dt = delT
         self.__tickTimer.update()
-        dt = self.__delT = self.__tickTimer.get_time("run")
+        self.__delT = self.__tickTimer.get_time("run")
         self.__tickTimer.reset()
+        dt = float(self.__delT)
         
         #When the robot is still, the accel values are near 0. In this case, set accel values to zero.
         self.__acceleration = (self.__acceleration[0] - self.__accelerometer_offset[0],
