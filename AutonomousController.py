@@ -1,12 +1,13 @@
 import os
 import pathlib
 import sys
-if os.uname().nodename == 'robotpi' or 'terminatorpi':
-    from gpiozero import Motor
-    # from gpiozero import RGBLED
-    from gpiozero import Button
-    from gpiozero import DistanceSensor
-    from colorzero import Color
+# if (os.uname().nodename == 'robotpi') or (os.uname().nodename == 'terminatorpi'):
+#     pass
+from gpiozero import Motor
+from gpiozero import RGBLED
+from gpiozero import Button
+from gpiozero import DistanceSensor
+from colorzero import Color
 import time
 import numpy as np
 from ADCS_System import *
@@ -39,11 +40,12 @@ class AutonomousController(object):
                 distance_sensor_right_pin = (21,16),
                 top_servo_pin = 10,
                 bottom_servo_pin = 9,
+                buzzer_pin = 11
                 ):
 
         self.__heading = None
         self.__desired_heading = None
-        # self.__rgbLED = RGB_Indicator(enable=True, verbose=False, red_pin=rgb_pins[0], green_pin=rgb_pins[1], blue_pin=rgb_pins[2],pwm=True, initial_color=(255,0,0))
+        self.__rgbLED = RGB_Indicator(enable=True, verbose=False, red_pin=rgb_pins[0], green_pin=rgb_pins[1], blue_pin=rgb_pins[2],pwm=True, initial_color=(255,0,0))
         
         self.__motor1 = DCMotor(verbose=False, enabled=True, pins=motor1_pins)
         self.__motor2 = DCMotor(verbose=False, enabled=True, pins=motor2_pins)
@@ -51,6 +53,7 @@ class AutonomousController(object):
         self.__motor4 = DCMotor(verbose=False, enabled=True, pins=motor4_pins)
         # self.__motor5 = IntakeMotor(verbose=False, enabled=False, pins=motor1_pins, rgbLED=self.__rgbLED)
         # self.__motor6 = IntakeMotor(verbose=False, enabled=False,  pins=motor1_pins, rgbLED=self.__rgbLED)
+        self.driveMotors = DriveMotors(self.__motor1, self.__motor2, self.__motor3, self.__motor4)
         
         self.__button = Button(button_pin)
         # self.__distance_sensor_left = DistanceSensor(echo=distance_sensor_left_pin[0], trigger=distance_sensor_left_pin[1])
@@ -59,8 +62,8 @@ class AutonomousController(object):
         self.__sonar_left = Sonar(verbose=False, enable=True, echo_pin= distance_sensor_left_pin[0], trig_pin=distance_sensor_left_pin[1])
         self.__sonar_right = Sonar(verbose=False, enable=True, echo_pin= distance_sensor_right_pin[0], trig_pin=distance_sensor_right_pin[1])
 
-        # self.distances = self.get_distances()
-        # self.ultrasound_enabled = False
+        self.distances = self.get_distances()
+        self.ultrasound_enabled = False
         
         self.__camera_mount = CameraMount(top_servo_pin, bottom_servo_pin)
         self.__adcs_system = ADCS(test_points=5, verbose=True, enabled=True)
@@ -95,16 +98,6 @@ class AutonomousController(object):
     def get_current_time(self):
         return(self.__current_time)
     
-    def initialize(self, robot_state):
-        #UNUSED
-        #initialize heading
-        # self.__heading = robot_state['heading']
-        # self.__speed = robot_state['speed']
-        # self.__position = robot_state['position']
-        # self.__desired_heading = robot_state['heading']
-        pass
-    
-
     def switch_on_state(self):
         """This function runs whenever the button is pressed"""
         if(self.__first_start):
@@ -128,15 +121,9 @@ class AutonomousController(object):
         time.sleep(1)
     
     def __repr__(self):
-
         return f"Robot Class"
         
-    def drive_motors(self, left_speed:float=0.0, right_speed:float=0.0):
-        self.__motor1.run(left_speed, "fwd")
-        self.__motor2.run(left_speed, "fwd")
-        self.__motor3.run(right_speed, "fwd")
-        self.__motor4.run(right_speed, "fwd")
-
+    ###
     # def start_intake(self, speed:float=75, direction:str="fwd"):
     #     assert direction in ["fwd", "rev", "stop"]
     #     self.run_motor(self.__motor6, speed, direction)
@@ -145,61 +132,18 @@ class AutonomousController(object):
     # def stop_intake(self):
     #     self.run_motor(self.__motor6, 0, "stop")
     #     self.run_motor(self.__motor5, 0, "stop")
-
-    def run_motor(self, motor, speed:float=0.0, motor_direction:str="fwd"):
-        """
-        Run a motor. Note that this sets the motor speed, and the motor keeps running once set, until set to speed 0
-        """
-        assert (speed >= -100) & (speed <= 100), "[ERR] Speed is out of bounds, must be a percent!"
-        assert motor_direction in ['fwd','rev','stop'], "[ERR] Invalid Direction"
-        if(motor_direction.lower().strip() == 'rev'):
-            speed = speed *-1
-        elif(motor_direction.lower().strip() == 'fwd'):
-            speed = speed
-        elif(motor_direction.lower().strip() == 'stop'): 
-            speed = 0
-        if(speed > 0):
-            motor.forward(abs(speed)/100.0)
-            if(motor.is_active):
-                # print("[INFO] Motor Forward.")
-                self.__rgbLED.color = (0,0,1)
-        elif(speed <0):
-            motor.backward(abs(speed)/100.0)
-            if(motor.is_active):
-                # print("[INFO] Motor Reverse.")
-                self.__rgbLED.color = (1,0,0)   
-        elif(speed==0):
-            motor.stop()
-            if(motor.is_active == False):
-                self.__rgbLED.color = (0,0,0)
-                if(self.__verbose==True):
-                    print("[INFO] Motor Stopped.")
+    ###
     
-    def turn_continously(self, turn_dir:str="right", speed:float=100):
-        """
-        Turn robot continuously (tank/pivot turn)
-        """
-        turn_dir = turn_dir.lower().strip()
-        assert (turn_dir == "right") or (turn_dir == "left"), "[ERR] Invalid Turn Direction Parameter."
-        if (turn_dir == "right"):
-            self.drive_motors(left_speed=speed, right_speed=-speed)
-        elif(turn_dir == "left"):
-            self.drive_motors(left_speed=-speed, right_speed=speed)
-        else:
-            print("[ERR] something went wrong")
-
-    def stop_drive_motors(self):
-        self.drive_motors(0,0)
 
     def stop_motors(self):
-        self.stop_drive_motors()
+        self.driveMotors.stop_drive_motors()
         # self.stop_intake()
 
     def run_avoidance_check(self, threshold, ignore = False):
         left_distance, right_distance = self.get_distances()
         print("check")
         if((left_distance<threshold) | (right_distance<threshold)):
-            self.stop_drive_motors()
+            self.driveMotors.stop_drive_motors()
             time.sleep(5)
 
     def get_desired_heading(self):
@@ -217,17 +161,17 @@ class AutonomousController(object):
     def get_on_state(self)->bool:
         return(self.__on_state)
     
-    # def get_distances(self):
-    #     left_distance = 0
-    #     right_distance = 0
+    def get_distances(self):
+        left_distance = 0
+        right_distance = 0
 
-    #     left_distance = self.__distance_sensor_left.distance * 100 #cm
-    #     right_distance = self.__distance_sensor_right.distance * 100
+        left_distance = self.__sonar_left.get_distance()
+        right_distance = self.__sonar_right.get_distance()
         
-    #     time.sleep(0.01)
-    #     # if(self.__verbose==True):
-    #     print(f"[DISTANCE SENSOR] Distance (CM): {left_distance} (LEFT), {right_distance} (RIGHT).", end="|")
-    #     return(left_distance, right_distance)
+        time.sleep(0.01)
+        # if(self.__verbose==True):
+        print(f"[DISTANCE SENSOR] Distance (CM): {left_distance} (LEFT), {right_distance} (RIGHT).", end="|")
+        return(left_distance, right_distance)
         
     def __heading_to_angle(self, target_angles):
         #account for multiple targets? targets would be ping pong balls in this case
@@ -295,30 +239,30 @@ class AutonomousController(object):
             # if(self.__timer >= end_time - 0.2):
                 # self.run_avoidance_check(50)
                 # self.__timer -= 5
-            self.drive_motors(speed, speed)
+            self.driveMotors.drive_motors(speed, speed)
             print(f"dir{direction}", end="|")
         elif((direction=="reverse") & (self.__timer >= start_time)):
             print(f"dir{direction}", end="|")
-            self.drive_motors(speed, speed)
+            self.driveMotors.drive_motors(speed, speed)
         elif((direction=="left") & (self.__timer >= start_time)):
-            self.drive_motors(0.05*speed, speed)
+            self.driveMotors.drive_motors(0.05*speed, speed)
             print(f"dir{direction}", end="|")
             # self.drive_motors(5, speed)
         elif((direction=="right") & (self.__timer >= start_time)):
-            self.drive_motors(speed, 0.05*speed)
+            self.driveMotors.drive_motors(speed, 0.05*speed)
             print(f"dir{direction}", end="|")
             # self.drive_motors(speed,5)
         elif((direction=="stop") & (self.__timer >= start_time)):
-            self.drive_motors(0,0)
+            self.driveMotors.drive_motors(0,0)
             print(f"dir{direction}", end="|")
             # self.drive_motors(speed,5)
         elif((direction=="wall_left") & (self.__timer >= start_time)):
-            self.drive_motors(0.075*speed, speed)
+            self.driveMotors.drive_motors(0.075*speed, speed)
             print(f"dir{direction}", end="|")
             # self.drive_motors(5, speed)
         elif((direction=="wall_forward") & (self.__timer >= start_time)):
             # autonomousController.switch_ultrasound_enable()
-            self.drive_motors(0.5*speed, speed)
+            self.driveMotors.drive_motors(0.5*speed, speed)
             print(f"dir{direction}", end="|")
             # self.drive_motors(5, speed)
         else:

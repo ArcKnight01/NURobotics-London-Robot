@@ -4,8 +4,24 @@ from matplotlib import cm
 import sys
 from numpy.core.numeric import ones
 from time import sleep
-import apriltag
+
+import os
+try:
+    nodeName= str(os.uname().nodename)
+except:
+    import platform
+    nodeName = str(platform.uname().node)
+print(nodeName)
+if (nodeName == "terminatorpi") or (nodeName == 'robotpi'):
+    import apriltag
+    plotting = False
+    supported = True
+else:
+    plotting = True
+    supported = False
+
 import numpy as np
+
 def sensor_position(pix_x, pix_y, res_x, res_y):
     sensor_width,sensor_height = (0.00368, 0.00276) #mm to meters
     origin = (res_x/2,res_y/2)
@@ -70,8 +86,14 @@ def detect_apriltags(image):
         cv2.circle(image, (center[0], center[1]), 5, (0, 0, 255), -1)
         
         # draw the tag family on the image
-        tagFamily = r.tag_family.decode("utf-8")
-        tagId = r.tag_id.decode("utf-8")
+        try:
+            tagFamily = r.tag_family.decode("utf-8")
+        except:
+            tagFamily = r.tag_family
+        try:
+            tagId = r.tag_id.decode("utf-8")
+        except:
+            tagId = r.tag_id
         cv2.putText(image, tagFamily, (ptA[0], ptA[1] - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         
         print(f"[INFO] tag family: {tagFamily}")
@@ -85,9 +107,9 @@ def detect_apriltags(image):
 
 def find_centers(filter_image, rgb_image, thresh):
     object_detection_surface = cv2.boxFilter(filter_image.astype(int), -1, (30, 30), normalize=False)
-
+    exitCode = False
     if np.max(object_detection_surface) <= 0:
-        return [], []
+        exitCode = True
 
     object_detection_surface = object_detection_surface * 255/np.max(object_detection_surface)
     # threshold = thresh * 255 / np.max(object_detection_surface)
@@ -101,6 +123,8 @@ def find_centers(filter_image, rgb_image, thresh):
     else:
         contours, hierarchy = cv2.findContours(img_out, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
+    if(exitCode == True):
+        return [], [], object_detection_surface, img_out
     centers = []
     angles = []
     for contour in contours:
@@ -113,12 +137,7 @@ def find_centers(filter_image, rgb_image, thresh):
         b = sensor_angle(a[0], a[1], focal_length)
         
         angles.append(b)
-    # if(True):
-    #     plt.imshow(object_detection_surface)
-    #     plt.pause(1)
-    #     plt.draw()
-    #     plt.plot()
-    return centers, angles
+    return centers, angles, object_detection_surface, img_out
 
 def get_ranges(red_range, green_range, blue_range, rgb_image):
     rgb_filt = cv2.boxFilter(rgb_image, -1, (9,9))
@@ -141,34 +160,24 @@ def detect_buoys(img):
     # rgb_image = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     rgb_image = np.flip(img, axis=2) 
     # rgb_image = np.flip(rgb_image, 0)
-
     r_red_range = (110,255)
     r_green_range = (0,50)
     r_blue_range = (0,50)
-
-    # g_red_range = (8,50)
-    # g_green_range = (150,255)
-    # g_blue_range = (180,255)
-
     img_thresh_red = get_ranges(r_red_range, r_green_range, r_blue_range, rgb_image)
-    # img_thresh_green = get_ranges(g_red_range, g_green_range, g_blue_range, rgb_image)
+    reds_centers, reds_angles, object_detection_surface, img_out = find_centers(img_thresh_red, rgb_image, 50)
+    print(reds_angles, reds_centers, object_detection_surface, img_out)
+    return reds_angles, reds_centers, object_detection_surface, img_out
 
-    reds_centers, reds_angles = find_centers(img_thresh_red, rgb_image, 50)
-    # greens_centers, green_angles = find_centers(img_thresh_green, rgb_image, 15)
-    #comment out green_centers, reds_centers when not testing
-    # return green_angles, reds_angles, #greens_centers, reds_centers
-    
-    return reds_angles, reds_centers
 # #comment out the below when not testing camera:
 if (__name__=='__main__') & (True):
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(1,3)
     repeat=True
     while(repeat==True):
         for frame_num in range(1681891319, 1681893880):
             
             img = cv2.imread(f'./Frames/frame_{frame_num}.jpg') 
             if img is not None:
-                r_angles, r_centers = detect_buoys(img)
+                r_angles, r_centers, object_detection_surface, img_out = detect_buoys(img)
                 if(len(r_angles)!=0):
                     print("Detected")
                 else:
@@ -177,11 +186,17 @@ if (__name__=='__main__') & (True):
                 print(frame_num)
                 print('\n')
                 print(r_angles)
-                ax.clear()
-                ax.imshow(img)
+                ax[0].clear()
+                ax[0].imshow(img)
+                ax[1].clear()
+                ax[1].imshow(object_detection_surface)
+                ax[2].clear()
+                ax[2].imshow(img_out)
                 print(r_centers)
                 if len(r_centers) != 0:
-                    ax.plot(r_centers[0][0], r_centers[0][1], 'ro')
+                    ax[0].plot(r_centers[0][0], r_centers[0][1], 'ro')
+                    ax[1].plot(r_centers[0][0], r_centers[0][1], 'ro')
+                    ax[2].plot(r_centers[0][0], r_centers[0][1], 'ro')
                 plt.pause(2)
                 
                 plt.draw()

@@ -1,8 +1,15 @@
 import sys
 import os
-import board
-import busio
-import adafruit_bno055
+try:
+    robotSupported = os.uname().nodename == 'terminatorpi' or 'robotpi'
+except:
+    import platform
+    robotSupported = platform.uname().node == 'terminatorpi' or 'robotpi'
+if robotSupported:
+    import board
+    import busio
+    import adafruit_bno055
+
 import time
 from ADCS_Util import *
 import csv
@@ -13,6 +20,7 @@ class ADCS(object):
         self.__test_points = test_points
         #Determine whether the ADCS System will print testing data to terminal
         self.__verbose = verbose
+        #Set whether robot is enabled
         self.__enabled = enabled
         
         #Declare the sensor device
