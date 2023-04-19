@@ -49,8 +49,8 @@ class AutonomousController(object):
         self.__motor2 = DCMotor(verbose=False, enabled=True, pins=motor2_pins, rgbLED=self.__rgbLED)
         self.__motor3 = DCMotor(verbose=False, enabled=True, pins=motor3_pins, rgbLED=self.__rgbLED)
         self.__motor4 = DCMotor(verbose=False, enabled=True, pins=motor4_pins, rgbLED=self.__rgbLED)
-        self.__motor5 = IntakeMotor(verbose=False, enabled=False, pins=motor1_pins, rgbLED=self.__rgbLED)
-        self.__motor6 = IntakeMotor(verbose=False, enabled=False,  pins=motor1_pins, rgbLED=self.__rgbLED)
+        # self.__motor5 = IntakeMotor(verbose=False, enabled=False, pins=motor1_pins, rgbLED=self.__rgbLED)
+        # self.__motor6 = IntakeMotor(verbose=False, enabled=False,  pins=motor1_pins, rgbLED=self.__rgbLED)
         
         self.__button = Button(button_pin)
         # self.__distance_sensor_left = DistanceSensor(echo=distance_sensor_left_pin[0], trigger=distance_sensor_left_pin[1])

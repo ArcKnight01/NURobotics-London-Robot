@@ -40,9 +40,9 @@ class DCMotor(object):
                     if(self.__verbose==True):
                         print("[INFO] Motor Stopped.")
 
-class IntakeMotor(DCMotor):
-    def __init__(self, verbose: bool = False, enabled:bool=False, pins: list = (15, 14, 18), pwm: bool = True, rgbLED: RGB_Indicator = RGB_Indicator(enable=True, verbose=True, red_pin=23, green_pin=24, blue_pin=25)):
-        super().__init__(verbose=verbose, enabled=enabled, pins=pins, pwm=pwm, rgbLED=rgbLED)
+# class IntakeMotor(DCMotor):
+#     def __init__(self, verbose: bool = False, enabled:bool=False, pins: list = (15, 14, 18), pwm: bool = True, rgbLED: RGB_Indicator = RGB_Indicator(enable=True, verbose=True, red_pin=23, green_pin=24, blue_pin=25)):
+#         super().__init__(verbose=verbose, enabled=enabled, pins=pins, pwm=pwm, rgbLED=rgbLED)
 
 
 class DriveMotors(object):
