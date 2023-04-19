@@ -1,8 +1,8 @@
 from gpiozero import Motor
-from RGB_Indicator import RGB_Indicator
+# from RGB_Indicator import RGB_Indicator
 
 class DCMotor(object):
-    def __init__(self, verbose:bool=False, enabled:bool=True, pins:list=(15,14,18), pwm:bool=True, rgbLED:RGB_Indicator=RGB_Indicator(enable=True, verbose=True, red_pin=23, green_pin=24, blue_pin=25)):
+    def __init__(self, verbose:bool=False, enabled:bool=True, pins:list=(15,14,18), pwm:bool=True):
         self.__motor = Motor(forward= pins[0], backward= pins[1], enable= pins[2], pwm=True) #left front
         # self.__rgbLED = rgbLED
         self.__verbose = verbose

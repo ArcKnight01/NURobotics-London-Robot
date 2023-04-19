@@ -43,12 +43,12 @@ class AutonomousController(object):
 
         self.__heading = None
         self.__desired_heading = None
-        self.__rgbLED = RGB_Indicator(enable=True, verbose=False, red_pin=rgb_pins[0], green_pin=rgb_pins[1], blue_pin=rgb_pins[2],pwm=True, initial_color=(255,0,0))
+        # self.__rgbLED = RGB_Indicator(enable=True, verbose=False, red_pin=rgb_pins[0], green_pin=rgb_pins[1], blue_pin=rgb_pins[2],pwm=True, initial_color=(255,0,0))
         
-        self.__motor1 = DCMotor(verbose=False, enabled=True, pins=motor1_pins, rgbLED=self.__rgbLED)
-        self.__motor2 = DCMotor(verbose=False, enabled=True, pins=motor2_pins, rgbLED=self.__rgbLED)
-        self.__motor3 = DCMotor(verbose=False, enabled=True, pins=motor3_pins, rgbLED=self.__rgbLED)
-        self.__motor4 = DCMotor(verbose=False, enabled=True, pins=motor4_pins, rgbLED=self.__rgbLED)
+        self.__motor1 = DCMotor(verbose=False, enabled=True, pins=motor1_pins)
+        self.__motor2 = DCMotor(verbose=False, enabled=True, pins=motor2_pins)
+        self.__motor3 = DCMotor(verbose=False, enabled=True, pins=motor3_pins)
+        self.__motor4 = DCMotor(verbose=False, enabled=True, pins=motor4_pins)
         # self.__motor5 = IntakeMotor(verbose=False, enabled=False, pins=motor1_pins, rgbLED=self.__rgbLED)
         # self.__motor6 = IntakeMotor(verbose=False, enabled=False,  pins=motor1_pins, rgbLED=self.__rgbLED)
         
