@@ -54,6 +54,8 @@ class ImageProcessor():
             print(reds)
             if len(reds) != 0: 
                 self.__buzzer.play(tone=Tone("A4"))
+                time.sleep(1)
+                self.__buzzer.stop()
                 for red in reds:
                     print(f"RED DETECTED at {red}")
                     
