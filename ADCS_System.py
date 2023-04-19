@@ -13,6 +13,7 @@ if robotSupported:
 import time
 from ADCS_Util import *
 import csv
+from RobotClock import Clock
 
 class ADCS(object):
     def __init__(self, test_points:int=10, verbose:bool=False, enabled:bool=True):
@@ -26,6 +27,8 @@ class ADCS(object):
         #Declare the sensor device
         self.__i2c = busio.I2C(board.SCL, board.SDA)
         self.__sensor = adafruit_bno055.BNO055_I2C(self.__i2c)
+        #initialize the clock.
+        self.__clock = Clock()
 
         #Set initial values for acceleration, velocity, and position to be (0,0,0)
         self.__acceleration = (0,0,0)
@@ -46,23 +49,43 @@ class ADCS(object):
         #calibrate gyroscope and get offset values
         self.__gyro_offset = self.calibrate_gyro()
         
+        self.__previous_orientation = self.__orientation = self.__initial_orientation = self.set_initial(self.__mag_offset)
         
+        #initialize the csv-data file
+        self.init_csv()
+        
+        self.__clock.reset()
+        self.__clock.update()
+        self.__runtime = self.__clock.get_time("run")
+        self.__time = self.__clock.get_time("current")
+
+    def calibrate(self):
+        #calibrate accelerometer and get offset values
+        self.__accelerometer_offset = self.calibrate_accelerometer()
+
+        #calibrate magnetometer and get offset values
+        self.__mag_offset = self.calibrate_mag()
+
+        #calibrate gyroscope and get offset values
+        self.__gyro_offset = self.calibrate_gyro()
+
+        #set initial angle
         self.__previous_orientation = self.__orientation = self.__initial_orientation = self.set_initial(self.__mag_offset)
 
         self.__orientation_zeroed = self.zero_orientation()
         #zero the orientation to intitial orientation of robot
         
-        #time stuff
-        self.__startTime = self.__initial_startTime = time.time()
-        self.__currentTime = time.time() - self.__startTime
-
-        #initialize the csv-data file
-        self.init_csv()
-
+    
     def update(self):
-        #Raw Data
-        self.__currentTime = time.time() - self.__initial_startTime
 
+        self.__previous_acceleration = self.__acceleration
+        self.__previous_velocity = self.__velocity
+        self.__previous_position = self.__position
+        self.__previous_orientation = self.__orientation
+
+        self.__clock.update()
+        self.__runtime = self.__clock.get_time("run")
+        self.__time = self.__clock.get_time("current")
         self.__euler = self.__sensor.euler
         self.__quaternion = self.__sensor.quaternion
         self.__linear_acceleration = self.__sensor.linear_acceleration
@@ -71,87 +94,65 @@ class ADCS(object):
         self.__magnetometer = self.__sensor.magnetic
         self.__gyro = self.__sensor.gyro
 
-        self.__magnetometer = (self.__magnetometer[0] - self.__mag_offset[0], 
-                               self.__magnetometer[1] - self.__mag_offset[1], 
-                               self.__magnetometer[2] - self.__mag_offset[2]
-                               )
-
-        self.__gyro = (self.__gyro[0] *180/np.pi - self.__gyro_offset[0],
-                        self.__gyro[1] *180/np.pi - self.__gyro_offset[1],
-                        self.__gyro[2] *180/np.pi - self.__gyro_offset[2]
-                       )
-
-        #get acceleration offset
-        
-        self.__previous_acceleration = self.__acceleration
-
-        self.__previous_velocity = self.__velocity
-
         self.__acceleration = self.__linear_acceleration
 
-        accelX, accelY, accelZ = self.__acceleration
+        #correct for offsets
+        self.__magnetometer = (self.__magnetometer[0] - self.__mag_offset[0], 
+                               self.__magnetometer[1] - self.__mag_offset[1], 
+                               self.__magnetometer[2] - self.__mag_offset[2])
+        
+        self.__gyro = (self.__gyro[0] *180/np.pi - self.__gyro_offset[0],
+                       self.__gyro[1] *180/np.pi - self.__gyro_offset[1],
+                       self.__gyro[2] *180/np.pi - self.__gyro_offset[2])
+        dt = delT
         #When the robot is still, the accel values are near 0. In this case, set accel values to zero.
-        accelX = round(self.__acceleration[0] - self.__accelerometer_offset[0],2)
-        accelY = round(self.__acceleration[1] - self.__accelerometer_offset[1],2)
-        accelZ = round(self.__acceleration[2] - self.__accelerometer_offset[2],2)
-        if (abs(accelX) < 0.75):
-            accelX = 0
-        if (abs(accelY < 0.75)):
-            accelY = 0
-        if (abs(accelZ < 0.75)):
-            accelZ = 0
-        #update accel values
-        self.__acceleration = (accelX, accelY, accelZ)
-        self.__delta_acceleration = (self.__acceleration[0] - self.__previous_acceleration[0],self.__acceleration[1] - self.__previous_acceleration[1],self.__acceleration[2] - self.__previous_acceleration[2])
-       
+        self.__acceleration = (self.__acceleration[0] - self.__accelerometer_offset[0],
+                               self.__acceleration[1] - self.__accelerometer_offset[1],
+                               self.__acceleration[2] - self.__accelerometer_offset[2])
+        
+        self.__delta_acceleration = (self.__acceleration[0] - self.__previous_acceleration[0],
+                                     self.__acceleration[1] - self.__previous_acceleration[1],
+                                     self.__acceleration[2] - self.__previous_acceleration[2])
+
+        self.__velocity = (self.__velocity[0] + self.__delta_acceleration[0]*dt, 
+                           self.__velocity[1] + self.__delta_acceleration[1]*dt, 
+                           self.__velocity[2] + self.__delta_acceleration[2]*dt)
+        
+        self.__delta_velocity = (self.__velocity[0] - self.__previous_velocity[0],
+                                 self.__velocity[1] - self.__previous_velocity[1],
+                                 self.__velocity[2] - self.__previous_velocity[2])
+        #update position
+        self.__position = (self.__position[0] + self.__delta_velocity[0]*dt,
+                           self.__position[1] + self.__delta_velocity[1]*dt,
+                           self.__position[2] + self.__delta_velocity[2]*dt)
         #get roll,pitch,yaw with acceleration-magnetic data
         self.__roll_am = roll_am(self.__acceleration[0], self.__acceleration[1], self.__acceleration[2]) - self.__orientation_zeroed[0]
         self.__pitch_am = pitch_am(self.__acceleration[0], self.__acceleration[1], self.__acceleration[2]) - self.__orientation_zeroed[1]
         self.__yaw_am = yaw_am(self.__acceleration[0], self.__acceleration[1], self.__acceleration[2], self.__magnetometer[0], self.__magnetometer[1], self.__magnetometer[2]) - self.__orientation_zeroed[2]
     
-        #reset the timer
-        self.__endTime = time.time()
-        #calculate delta time
-        delT = self.__endTime - self.__startTime
-        #restart the timer
-        self.__startTime = time.time()
-
         #get roll,pitch,yaw with respect to gyro data
-        self.__roll_gy = roll_gy(self.__previous_orientation[0], delT, self.__gyro[0]) - self.__orientation_zeroed[0]
-        self.__pitch_gy = pitch_gy(self.__previous_orientation[1], delT, self.__gyro[1]) - self.__orientation_zeroed[1]
-        self.__yaw_gy = yaw_gy(self.__previous_orientation[2], delT, self.__gyro[2]) - self.__orientation_zeroed[2]
+        self.__roll_gy = roll_gy(self.__previous_orientation[0], dt, self.__gyro[0]) - self.__orientation_zeroed[0]
+        self.__pitch_gy = pitch_gy(self.__previous_orientation[1], dt, self.__gyro[1]) - self.__orientation_zeroed[1]
+        self.__yaw_gy = yaw_gy(self.__previous_orientation[2], dt, self.__gyro[2]) - self.__orientation_zeroed[2]
 
         #get roll,pitch,yaw using fusion of am and gyro
-        self.__roll = roll_F(self.__previous_orientation[0], delT, self.__gyro[0], self.__acceleration[0],self.__acceleration[1], self.__acceleration[2], 0.5) - self.__orientation_zeroed[0]
-        self.__pitch = pitch_F(self.__previous_orientation[1], delT, self.__gyro[1], self.__acceleration[0],self.__acceleration[1], self.__acceleration[2], 0.5) - self.__orientation_zeroed[1]
-        self.__yaw = yaw_F(self.__previous_orientation[0], delT, self.__gyro[0], self.__acceleration[0],self.__acceleration[1], self.__acceleration[2], self.__magnetometer[0], self.__magnetometer[1], self.__magnetometer[2],0.5) - self.__orientation_zeroed[2]
+        self.__roll = roll_F(self.__previous_orientation[0], dt, self.__gyro[0], self.__acceleration[0],self.__acceleration[1], self.__acceleration[2], 0.5) - self.__orientation_zeroed[0]
+        self.__pitch = pitch_F(self.__previous_orientation[1], dt, self.__gyro[1], self.__acceleration[0],self.__acceleration[1], self.__acceleration[2], 0.5) - self.__orientation_zeroed[1]
+        self.__yaw = yaw_F(self.__previous_orientation[0], dt, self.__gyro[0], self.__acceleration[0],self.__acceleration[1], self.__acceleration[2], self.__magnetometer[0], self.__magnetometer[1], self.__magnetometer[2],0.5) - self.__orientation_zeroed[2]
 
         #set the orientation based on roll pitch and yaw values
         self.__orientation = (self.__roll, self.__pitch, self.__yaw)
-        #set previous orientation to roll pitch and yaw based on gyro data?
-        self.__previous_orientation = [self.__roll_gy, self.__pitch_gy, self.__yaw_gy]
 
-        #update velocity
-        dt = delT
-        #dt = 1
-        self.__velocity = (self.__velocity[0] + self.__delta_acceleration[0]*dt, self.__velocity[1] + self.__delta_acceleration[1]*dt, self.__velocity[2] + self.__delta_acceleration[2]*dt)
-        self.__delta_velocity = (self.__velocity[0] - self.__previous_velocity[0],self.__velocity[1] - self.__previous_velocity[1],self.__velocity[2] - self.__previous_velocity[2])
-        #update position
-        self.__position = (self.__position[0] + self.__delta_velocity[0]*dt, self.__position[1] + self.__delta_velocity[1]*dt, self.__position[2]  +self.__delta_velocity[2]*dt)
-        
-        
         if(self.__verbose):
             print(f"[INFO] Raw Acceleration {self.__raw_acceleration}")
             print(f"[INFO] Linear Acceleration {self.__linear_acceleration}")
             print(f"[INFO] Acceleration {self.__acceleration}")
-
             print(f"[INFO] Velocity {self.__velocity}")
             print(f"[INFO] Position {self.__position}")
-            # print(f"Magnetometer {self.__magnetometer}")
-            # print(f"Gyroscope {self.__gyro}")
-            # print(f"Euler orientation {self.__euler}")
-            # print(f"Quaternion {self.__quaternion}")
-            
+            print(f"[INFO] Magnetometer {self.__magnetometer}")
+            print(f"[INFO] Gyroscope {self.__gyro}")
+            # print(f"[INFO] Euler orientation {self.__euler}")
+            # print(f"[INFO] Quaternion {self.__quaternion}")
             print(f"[INFO] Gravity {self.__gravity}")
             print(f"[INFO] RPY_GY {(round(self.__roll_gy,2), round(self.__pitch_gy,2), round(self.__yaw_gy,2))} (degrees)")
             print(f"[INFO] RPY_AM {(round(self.__roll_am,2), round(self.__pitch_am,2), round(self.__yaw_am,2))} (degrees)")
@@ -300,20 +301,39 @@ class ADCS(object):
         return ([(180/np.pi)*rollN,(180/np.pi)*pitchN,(180/np.pi)*yawN])
 
     def get_data(self):
-        return(self.__currentTime, self.__raw_acceleration, self.__acceleration, self.__velocity, self.__position, self.__orientation)
+        return(self.__time, self.__raw_acceleration, self.__acceleration, self.__velocity, self.__position, self.__orientation)
 
     def init_csv(self):
         with open('./imu_data.csv', 'w') as csvfile:
             data = csv.writer(csvfile, delimiter =',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-            data.writerow(['Time','AccelX', 'AccelY','AccelZ', 'VelX', 'VelY', 'VelZ', 'PosX', 'PosY', 'PosZ', 'Roll', 'Pitch', 'Yaw'])
+            data.writerow(['Time',
+                           'AccelerationX','AccelerationY','AccelerationZ',
+                           'RawAccelerationX', 'RawAccelerationY', 'RawAccelerationZ',
+                           'VelocityX', 'VelocityY', 'VelocityZ',
+                           'PositionX', 'PositionY', 'PositionZ',
+                           'Roll', 'Pitch', 'Yaw',
+                           'MagnetometerX', 'MagnetometerY', 'MagnetometerZ',
+                           'GyroX', 'GyroY', 'GyroZ',
+                           'GravityX', 'GravityY', 'GravityZ',
+                           'EulerX', 'EulerY', 'EulerZ'
+
+                           ])
 
     def add_to_csv(self):
-        time, _, acceleration, velocity, position, orientation = self.get_data()
-        accelX, accelY, accelZ = acceleration
-        velX, velY, velZ = velocity
-        posX, posY, posZ = position
-        roll, pitch, yaw = orientation
-        self.__data = [time, accelX, accelY, accelZ, velX, velY, velZ, posX, posY, posZ, roll, pitch, yaw]
+        
+        
+        self.__data = [
+            self.__time,
+              self.__acceleration[0], self.__acceleration[1], self.__acceleration[2],
+              self.__raw_acceleration[0], self.__raw_acceleration[1], self.__raw_acceleration[2],
+              self.__velocity[0], self.__velocity[1], self.__velocity[2],
+              self.__position[0], self.__position[1], self.__position[2],
+              self.__orientation[0], self.__orientation[1], self.__orientation[2],
+              self.__magnetometer[0], self.__magnetometer[1], self.__magnetometer[2],
+              self.__gyro[0], self.__gyro[1], self.__gyro[2],
+              self.__gravity[0], self.__gravity[1], self.__gravity[2],
+              self.__euler[0], self.__euler[1], self.__euler[2]
+        ]
         with open('./imu_data.csv', 'a') as csvfile:
             data = csv.writer(csvfile, delimiter =',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
             data.writerow(self.__data)

@@ -17,6 +17,7 @@ from Sonar import Sonar
 from Servo_Motors import ServoMotor
 from RGB_Indicator import RGB_Indicator
 from CameraMount import CameraMount
+from RobotClock import Clock
 
 import psutil
 import warnings

@@ -173,7 +173,7 @@ if (__name__=='__main__') & (True):
     fig, ax = plt.subplots(1,3)
     repeat=True
     while(repeat==True):
-        for frame_num in range(1681891319, 1681893880):
+        for frame_num in range(1681905135, 1681908011):
             
             img = cv2.imread(f'./Frames/frame_{frame_num}.jpg') 
             if img is not None:
