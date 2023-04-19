@@ -4,7 +4,7 @@ from matplotlib import cm
 import sys
 from numpy.core.numeric import ones
 from time import sleep
-# import apriltag
+import apriltag
 import numpy as np
 def sensor_position(pix_x, pix_y, res_x, res_y):
     sensor_width,sensor_height = (0.00368, 0.00276) #mm to meters
@@ -137,9 +137,9 @@ def detect_buoys(img):
     rgb_image = np.flip(img, axis=2) 
     # rgb_image = np.flip(rgb_image, 0)
 
-    r_red_range = (160,255)
-    r_green_range = (0,100)
-    r_blue_range = (0,100)
+    r_red_range = (150,255)
+    r_green_range = (0,90)
+    r_blue_range = (0,70)
 
     # g_red_range = (8,50)
     # g_green_range = (150,255)
