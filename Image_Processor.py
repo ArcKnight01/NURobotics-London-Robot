@@ -50,7 +50,7 @@ class ImageProcessor():
                 time.sleep(0.05) # camera warmup time
                 
             image = self.__image.reshape((480, 640, 3))
-            reds,_ = detect_buoys(image)
+            reds,_,_,_= detect_buoys(image)
             print(reds)
             if len(reds) != 0: 
                 for red in reds:
