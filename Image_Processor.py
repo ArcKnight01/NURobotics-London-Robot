@@ -8,8 +8,12 @@ import numpy as np
 import os
 from gpiozero import TonalBuzzer
 from gpiozero.tones import Tone
-import picamera
-print(f"{os.uname()}")
+try:
+    print(f"{os.uname()}")
+    import picamera
+except:
+    pass
+
 from Camera_Util import detect_apriltags
 from Camera_Util import detect_buoys
 class ImageProcessor():
@@ -54,16 +58,16 @@ class ImageProcessor():
                     self.__buzzer.play(tone=Tone("A4"))
 
             #detect APRIL TAGS
-            detected, image, tagFamilies, tagIds, centers, angles, corners = detect_apriltags(image)
-            if(detected == True):
-                if(self.__verbose==True):
-                    print(f"TAG(s) DETECTED:")
-                for tagId in tagIds:
-                    if(self.__verbose==True):
-                        print(tagId)
-            else:
+            # detected, image, tagFamilies, tagIds, centers, angles, corners = detect_apriltags(image)
+            # if(detected == True):
+            #     if(self.__verbose==True):
+            #         print(f"TAG(s) DETECTED:")
+            #     for tagId in tagIds:
+            #         if(self.__verbose==True):
+            #             print(tagId)
+            # else:
                 
-                print(f"NO TAG(s) DETECTED!")
+            #     print(f"NO TAG(s) DETECTED!")
 
             
             #detect SPHERES
