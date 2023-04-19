@@ -6,8 +6,8 @@ import time
 import cv2
 import numpy as np
 import os
-
-
+from gpiozero import TonalBuzzer
+from gpiozero.tones import Tone
 import picamera
 print(f"{os.uname()}")
 from Camera_Util import detect_apriltags
@@ -26,7 +26,7 @@ class ImageProcessor():
         if(self.__image_dir.exists() == False):
             print(f"[INFO] {self.__image_dir} does not exist, creating directory.")
         self.__image_dir.mkdir(parents=True, exist_ok=True)
-    
+        self.__buzzer = TonalBuzzer(11,Tone=("A4"))    
     # ------------------------------------------------------------------------ #
     # Run an iteration of the image processor. 
     # The sim version needs the robot_state (a dictionary of values from the ADCS System) ot generate simulated imagery (Deprecated)
@@ -50,6 +50,8 @@ class ImageProcessor():
             if len(reds) != 0: 
                 for red in reds:
                     print(f"RED DETECTED at {red}")
+                    self.__buzzer.play(tone=Tone("A4"))
+
             #detect APRIL TAGS
             detected, image, tagFamilies, tagIds, centers, angles, corners = detect_apriltags(image)
             if(detected == True):

@@ -4,7 +4,7 @@ from matplotlib import cm
 import sys
 from numpy.core.numeric import ones
 from time import sleep
-import apriltag
+# import apriltag
 import numpy as np
 def sensor_position(pix_x, pix_y, res_x, res_y):
     sensor_width,sensor_height = (0.00368, 0.00276) #mm to meters
@@ -23,64 +23,64 @@ focal_length = 0.00304 #mm is the focal length
 def sensor_angle(sensor_pos_x, sensor_pos_y, f):
     return np.degrees(np.arctan2(sensor_pos_x,f))
 
-def detect_apriltags(image):
-    # image = cv2.imread('/home/pi/NuRobotics/Frames/tag16_05_00000.png')
+# def detect_apriltags(image):
+#     # image = cv2.imread('/home/pi/NuRobotics/Frames/tag16_05_00000.png')
     
-    #convert image to grayscale
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+#     #convert image to grayscale
+#     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     
-    options = apriltag.DetectorOptions(families=["tag36h11","tag16h5"])
-    detector = apriltag.Detector(options)
+#     options = apriltag.DetectorOptions(families=["tag36h11","tag16h5"])
+#     detector = apriltag.Detector(options)
     
-    results = detector.detect(gray)
-    centers = []
-    angles = []
-    corners = []
-    tagFamilies = []
-    tagIds = []
-    tag_detected = False
-    for r in results:
-        #find the corners of the april tag
-        (ptA, ptB, ptC, ptD) = r.corners
-        ptB = (int(ptB[0]), int(ptB[1]))
-        ptC = (int(ptC[0]), int(ptC[1]))
-        ptD = (int(ptD[0]), int(ptD[1]))
-        ptA = (int(ptA[0]), int(ptA[1]))
+#     results = detector.detect(gray)
+#     centers = []
+#     angles = []
+#     corners = []
+#     tagFamilies = []
+#     tagIds = []
+#     tag_detected = False
+#     for r in results:
+#         #find the corners of the april tag
+#         (ptA, ptB, ptC, ptD) = r.corners
+#         ptB = (int(ptB[0]), int(ptB[1]))
+#         ptC = (int(ptC[0]), int(ptC[1]))
+#         ptD = (int(ptD[0]), int(ptD[1]))
+#         ptA = (int(ptA[0]), int(ptA[1]))
         
-        corners.append((ptA, ptB, ptC, ptD))
-        #find the centers
-        center = (int(r.center[0]), int(r.center[1]))
-        center.append(center)
+#         corners.append((ptA, ptB, ptC, ptD))
+#         #find the centers
+#         center = (int(r.center[0]), int(r.center[1]))
+#         center.append(center)
         
-        #find the angles 
-        a = sensor_position(center[0], center[1], image.shape[1], image.shape[0])
-        angle = sensor_angle(a[0], a[1], focal_length)
-        angles.append(angle)
+#         #find the angles 
+#         a = sensor_position(center[0], center[1], image.shape[1], image.shape[0])
+#         angle = sensor_angle(a[0], a[1], focal_length)
+#         angles.append(angle)
 
-        print(f"[INFO] tag center @ {center}")
-        print(f"[INFO] tag angle @ {angle}")
-        # draw the bounding box of the AprilTag detection
-        cv2.line(image, ptA, ptB, (0, 255, 0), 2)
-        cv2.line(image, ptB, ptC, (0, 255, 0), 2)
-        cv2.line(image, ptC, ptD, (0, 255, 0), 2)
-        cv2.line(image, ptD, ptA, (0, 255, 0), 2)
+#         print(f"[INFO] tag center @ {center}")
+#         print(f"[INFO] tag angle @ {angle}")
+#         # draw the bounding box of the AprilTag detection
+#         cv2.line(image, ptA, ptB, (0, 255, 0), 2)
+#         cv2.line(image, ptB, ptC, (0, 255, 0), 2)
+#         cv2.line(image, ptC, ptD, (0, 255, 0), 2)
+#         cv2.line(image, ptD, ptA, (0, 255, 0), 2)
 
        
-        # draw the center (x, y)-coordinates of the AprilTag
-        cv2.circle(image, (center[0], center[1]), 5, (0, 0, 255), -1)
+#         # draw the center (x, y)-coordinates of the AprilTag
+#         cv2.circle(image, (center[0], center[1]), 5, (0, 0, 255), -1)
         
-        # draw the tag family on the image
-        tagFamily = r.tag_family.decode("utf-8")
-        tagId = r.tag_id.decode("utf-8")
-        cv2.putText(image, tagFamily, (ptA[0], ptA[1] - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+#         # draw the tag family on the image
+#         tagFamily = r.tag_family.decode("utf-8")
+#         tagId = r.tag_id.decode("utf-8")
+#         cv2.putText(image, tagFamily, (ptA[0], ptA[1] - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         
-        print(f"[INFO] tag family: {tagFamily}")
-        tagFamilies.append(tagFamily)
-        print(f"[INFO tag id {tagId}]")
-        tagIds.append(tagId)
+#         print(f"[INFO] tag family: {tagFamily}")
+#         tagFamilies.append(tagFamily)
+#         print(f"[INFO tag id {tagId}]")
+#         tagIds.append(tagId)
     
-    tag_detected = True if len(results) != 0 else False
-    return tag_detected, image, tagFamilies, tagIds, centers, angles, corners
+#     tag_detected = True if len(results) != 0 else False
+#     return tag_detected, image, tagFamilies, tagIds, centers, angles, corners
     
 
 def find_centers(filter_image, rgb_image, thresh):
@@ -137,9 +137,9 @@ def detect_buoys(img):
     rgb_image = np.flip(img, axis=2) 
     # rgb_image = np.flip(rgb_image, 0)
 
-    r_red_range = (30,200)
-    r_green_range = (50,120)
-    r_blue_range = (100,240)
+    r_red_range = (160,255)
+    r_green_range = (0,100)
+    r_blue_range = (0,100)
 
     # g_red_range = (8,50)
     # g_green_range = (150,255)
@@ -152,28 +152,24 @@ def detect_buoys(img):
     # greens_centers, green_angles = find_centers(img_thresh_green, rgb_image, 15)
     #comment out green_centers, reds_centers when not testing
     # return green_angles, reds_angles, #greens_centers, reds_centers
-    return reds_angles
+    return reds_angles, reds_centers
 # #comment out the below when not testing camera:
+if (__name__=='__main__') & (False):
+    fig, ax = plt.subplots()
+    for frame_num in range(1, 3):
+        
+        img = cv2.imread(f'./Frames/frame_{frame_num}.jpg') 
+        
+        r_angles, r_centers = detect_buoys(img)
 
-# fig, ax = plt.subplots()
-# for frame_num in range(1, 4):
-
-#     img = cv2.imread(f'real/frame_{frame_num}.jpg') 
-    
-#     g_angles, r_angles, g_centers, r_centers = detect_buoys(img)
-
-#     img = np.flip(img, axis=2)
-#     # print(frame_num)
-#     print('\n')
-#     print(g_angles)
-#     print(r_angles)
-#     ax.clear()
-#     ax.imshow(img)
-#     print(g_centers)
-#     print(r_centers)
-#     if len(g_centers) != 0:
-#         ax.plot(g_centers[0][0], g_centers[0][1], 'bo')
-#     if len(r_centers) != 0:
-#         ax.plot(r_centers[0][0], r_centers[0][1], 'ro')
-#     plt.pause(1)
-#     plt.draw()
+        img = np.flip(img, axis=2)
+        # print(frame_num)
+        print('\n')
+        print(r_angles)
+        ax.clear()
+        ax.imshow(img)
+        print(r_centers)
+        if len(r_centers) != 0:
+            ax.plot(r_centers[0][0], r_centers[0][1], 'ro')
+        plt.pause(1)
+        plt.draw()

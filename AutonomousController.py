@@ -132,19 +132,19 @@ class AutonomousController(object):
         return f"Robot Class"
         
     def drive_motors(self, left_speed:float=0.0, right_speed:float=0.0):
-        self.run_motor(self.__motor1, left_speed, "fwd")
-        self.run_motor(self.__motor2, left_speed, "fwd")
-        self.run_motor(self.__motor3, right_speed, "fwd")
-        self.run_motor(self.__motor4, right_speed, "fwd")
+        self.__motor1.run(left_speed, "fwd")
+        self.__motor2.run(left_speed, "fwd")
+        self.__motor3.run(right_speed, "fwd")
+        self.__motor4.run(right_speed, "fwd")
 
-    def start_intake(self, speed:float=75, direction:str="fwd"):
-        assert direction in ["fwd", "rev", "stop"]
-        self.run_motor(self.__motor6, speed, direction)
-        self.run_motor(self.__motor5, speed, direction)
+    # def start_intake(self, speed:float=75, direction:str="fwd"):
+    #     assert direction in ["fwd", "rev", "stop"]
+    #     self.run_motor(self.__motor6, speed, direction)
+    #     self.run_motor(self.__motor5, speed, direction)
     
-    def stop_intake(self):
-        self.run_motor(self.__motor6, 0, "stop")
-        self.run_motor(self.__motor5, 0, "stop")
+    # def stop_intake(self):
+    #     self.run_motor(self.__motor6, 0, "stop")
+    #     self.run_motor(self.__motor5, 0, "stop")
 
     def run_motor(self, motor, speed:float=0.0, motor_direction:str="fwd"):
         """
@@ -193,7 +193,7 @@ class AutonomousController(object):
 
     def stop_motors(self):
         self.stop_drive_motors()
-        self.stop_intake()
+        # self.stop_intake()
 
     def run_avoidance_check(self, threshold, ignore = False):
         left_distance, right_distance = self.get_distances()
@@ -217,17 +217,17 @@ class AutonomousController(object):
     def get_on_state(self)->bool:
         return(self.__on_state)
     
-    def get_distances(self):
-        left_distance = 0
-        right_distance = 0
+    # def get_distances(self):
+    #     left_distance = 0
+    #     right_distance = 0
 
-        left_distance = self.__distance_sensor_left.distance * 100 #cm
-        right_distance = self.__distance_sensor_right.distance * 100
+    #     left_distance = self.__distance_sensor_left.distance * 100 #cm
+    #     right_distance = self.__distance_sensor_right.distance * 100
         
-        time.sleep(0.01)
-        # if(self.__verbose==True):
-        print(f"[DISTANCE SENSOR] Distance (CM): {left_distance} (LEFT), {right_distance} (RIGHT).", end="|")
-        return(left_distance, right_distance)
+    #     time.sleep(0.01)
+    #     # if(self.__verbose==True):
+    #     print(f"[DISTANCE SENSOR] Distance (CM): {left_distance} (LEFT), {right_distance} (RIGHT).", end="|")
+    #     return(left_distance, right_distance)
         
     def __heading_to_angle(self, target_angles):
         #account for multiple targets? targets would be ping pong balls in this case
@@ -341,6 +341,8 @@ class AutonomousController(object):
             self.__timer = self.__current_time - self.__start_time
             self.__competition_timer = self.__current_time - self.__competition_start_time
         
+        self.__camera_mount.revolve()
+
         if(self.__camera_enabled):
             try:
                 self.__image_processor.run()
@@ -357,17 +359,18 @@ class AutonomousController(object):
             #TODO have robot know to return to start
             autonomousController.stop_motors()
             sys.exit(0)
-            pass
+            
         
-        if(self.__adcs_enabled):
-            self.__adcs_system.update()
-            self.__adcs_system.add_to_csv()
+        
+        self.__adcs_system.update()
+        self.__adcs_system.add_to_csv()
             # self.__raw_accel, self.__acceleration, self.__velocity, self.__position, self.__orientation = self.__adcs_system.get_data()
             # print(f"Raw:{(round(self.__raw_accel[1:][0],2), round(self.__raw_accel[1:][0],2),self.__raw_accel[1:][1])}|Accel:{self.__acceleration[1:]}|Vel:{self.__velocity[1:]}|Pos:{self.__position[1:]}|Rpy:{self.__orientation}")
 
         
         #Update and get sonar data, and check for collision
-        self.get_distances()
+        # self.get_distances()\
+        
         
        
         
@@ -392,8 +395,8 @@ if __name__ == "__main__":
                 # autonomousController.start_intake(100, direction="rev")
                 # timestamp = autonomousController.driveForTime(0, "reverse", 100, 10)
                 # sys.exit(0)
-                timestamp = autonomousController.driveForTime(0, "wall_forward", 65, 1.75)
-                # timestamp = autonomousController.driveForTime(timestamp, "wall_left", 100, 3.25)
+                timestamp = autonomousController.driveForTime(0, "forward", 65, 1.75)
+                timestamp = autonomousController.driveForTime(timestamp, "left", 100, 0.25)
                 # timestamp = autonomousController.driveForTime(timestamp, "forward", 100, 0.75)
                 # timestamp = autonomousController.driveForTime(timestamp, "right", 100, 3.75)
                 # timestamp = autonomousController.driveForTime(timestamp, "forward", 100, 0.75)
