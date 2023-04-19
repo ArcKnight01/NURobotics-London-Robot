@@ -4,7 +4,7 @@ from matplotlib import cm
 import sys
 from numpy.core.numeric import ones
 from time import sleep
-# import apriltag
+import apriltag
 import numpy as np
 def sensor_position(pix_x, pix_y, res_x, res_y):
     sensor_width,sensor_height = (0.00368, 0.00276) #mm to meters
