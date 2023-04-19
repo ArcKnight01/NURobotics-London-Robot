@@ -53,9 +53,10 @@ class ImageProcessor():
             reds,_,_,_= detect_buoys(image)
             print(reds)
             if len(reds) != 0: 
+                self.__buzzer.play(tone=Tone("A4"))
                 for red in reds:
                     print(f"RED DETECTED at {red}")
-                    self.__buzzer.play(tone=Tone("A4"))
+                    
 
             #detect APRIL TAGS
             # detected, image, tagFamilies, tagIds, centers, angles, corners = detect_apriltags(image)

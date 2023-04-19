@@ -1,7 +1,8 @@
 from Servo_Motors import ServoMotor
 import time
 class CameraMount:
-    def __init__(self, servo_pin_1, servo_pin_2):
+    def __init__(self, servo_pin_1, servo_pin_2, verbose:bool=False):
+        self.__verbose = verbose
         self.__top_servo = ServoMotor(servo_pin_1, 0)
         self.__bottom_servo = ServoMotor(servo_pin_2, 0)
         self.__counter = 0
@@ -11,6 +12,9 @@ class CameraMount:
         time.sleep(0.001)
 
     def getSphericalCoordinates(self):
+        if(self.__verbose == True):
+            print(f"[CAM]T{self.__top_servo.get_degree()},B{self.__bottom_servo.get_degree()}")
+
         return((self.__top_servo.get_degree(), self.__bottom_servo.get_degree()))
     
     def revolve(self):

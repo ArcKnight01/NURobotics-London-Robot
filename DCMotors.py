@@ -50,7 +50,8 @@ class DriveMotors(object):
                 leftFrontMotor:DCMotor,
                 rightFrontMotor:DCMotor,
                 leftBackMotor:DCMotor,
-                rightBackMotor:DCMotor
+                rightBackMotor:DCMotor,
+                verbose:bool=False
                 ):
         
         self.__leftFrontMotor = leftFrontMotor

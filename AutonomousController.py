@@ -59,25 +59,24 @@ class AutonomousController(object):
         # self.__distance_sensor_left = DistanceSensor(echo=distance_sensor_left_pin[0], trigger=distance_sensor_left_pin[1])
         # self.__distance_sensor_right = DistanceSensor(echo=distance_sensor_right_pin[0], trigger=distance_sensor_right_pin[1])
 
-        self.__sonar_left = Sonar(verbose=False, enable=True, echo_pin= distance_sensor_left_pin[0], trig_pin=distance_sensor_left_pin[1])
-        self.__sonar_right = Sonar(verbose=False, enable=True, echo_pin= distance_sensor_right_pin[0], trig_pin=distance_sensor_right_pin[1])
+        self.__sonar_left = Sonar(verbose=False, enable=False, echo_pin= distance_sensor_left_pin[0], trig_pin=distance_sensor_left_pin[1])
+        self.__sonar_right = Sonar(verbose=False, enable=False, echo_pin= distance_sensor_right_pin[0], trig_pin=distance_sensor_right_pin[1])
 
         self.distances = self.get_distances()
         self.ultrasound_enabled = False
         
         self.__camera_mount = CameraMount(top_servo_pin, bottom_servo_pin)
-        self.__adcs_system = ADCS(test_points=5, verbose=True, enabled=True)
-        self.__image_processor = ImageProcessor('./', verbose=False, enabled=True)
+        self.__adcs = ADCS(test_points=10, verbose=True, enabled=True)
+        self.__image_processor = ImageProcessor('./', verbose=True, enabled=True)
+        
         self.__first_start = True
         self.__start_time = None
-
         self.__current_time = 0
         
         self.__competition_timer = 0.0
         self.__timer = 0.0
         self.__verbose = verbose
         self.__camera_enabled = True
-        
         
         self.__on_state = False #change to false if you want
         self.__button.when_pressed = self.switch_on_state
@@ -327,7 +326,7 @@ if __name__ == "__main__":
         automatic_start=True #change in comp
         motor_enable = True
         print() #new line
-        print("l", end='>')
+        print("", end='>')
         if (autonomousController.retrieve_percentage() != -1):
             print(f"PWR{autonomousController.retrieve_percentage()}",end='|')
         print(f"on:{autonomousController.get_on_state()}", end='|')
