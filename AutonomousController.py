@@ -10,7 +10,7 @@ from gpiozero import DistanceSensor
 from colorzero import Color
 import time
 import numpy as np
-from adcs import *
+from ADCS_System import *
 from Image_Processor import *
 from DCMotors import *
 from Sonar import Sonar
