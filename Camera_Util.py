@@ -50,7 +50,7 @@ def detect_apriltags(image):
         corners.append((ptA, ptB, ptC, ptD))
         #find the centers
         center = (int(r.center[0]), int(r.center[1]))
-        center.append(center)
+        centers.append(center)
         
         #find the angles 
         a = sensor_position(center[0], center[1], image.shape[1], image.shape[0])
