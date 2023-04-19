@@ -142,9 +142,9 @@ def detect_buoys(img):
     rgb_image = np.flip(img, axis=2) 
     # rgb_image = np.flip(rgb_image, 0)
 
-    r_red_range = (150,255)
-    r_green_range = (0,70)
-    r_blue_range = (0,70)
+    r_red_range = (110,255)
+    r_green_range = (0,50)
+    r_blue_range = (0,50)
 
     # g_red_range = (8,50)
     # g_green_range = (150,255)
@@ -164,7 +164,7 @@ if (__name__=='__main__') & (True):
     fig, ax = plt.subplots()
     repeat=True
     while(repeat==True):
-        for frame_num in range(1681891319, 1681891561):
+        for frame_num in range(1681891319, 1681893880):
             
             img = cv2.imread(f'./Frames/frame_{frame_num}.jpg') 
             if img is not None:
@@ -182,7 +182,7 @@ if (__name__=='__main__') & (True):
                 print(r_centers)
                 if len(r_centers) != 0:
                     ax.plot(r_centers[0][0], r_centers[0][1], 'ro')
-                plt.pause(1)
+                plt.pause(2)
                 
                 plt.draw()
                 

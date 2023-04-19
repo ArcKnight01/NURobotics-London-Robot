@@ -1,9 +1,9 @@
 import os
 import pathlib
 import sys
-if os.uname().nodename == 'robotpi':
+if os.uname().nodename == 'robotpi' or 'terminatorpi':
     from gpiozero import Motor
-    from gpiozero import RGBLED
+    # from gpiozero import RGBLED
     from gpiozero import Button
     from gpiozero import DistanceSensor
     from colorzero import Color
