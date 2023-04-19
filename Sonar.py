@@ -7,10 +7,12 @@ class Sonar(Sensor):
         super().__init__(verbose=verbose, enable=enable)
         self.__enable = enable
         self.__verbose = verbose
-        if (self.__enable):
+        self.__distance = 0
+        self.__sensor.max_distance = 100*100 #cm
+        if(self.__enable):
             self.__sensor = DistanceSensor(echo=echo_pin, trigger=trig_pin)
-            self.__sensor.max_distance = 100*100 #cm
-            self.__distance = 0
+        
+        
     
     def update(self):
         if(self.__enable):
@@ -18,21 +20,23 @@ class Sonar(Sensor):
             time.sleep(0.01)
             
     def get_distance(self):
-        self.update()
-        if(self.__verbose):
-                print(f"[SONAR SENSOR] Distance: {self.__distance} cm.", end="|")  
+        if(self.__enable):
+            self.update()
+            if(self.__verbose):
+                    print(f"[SONAR SENSOR] Distance: {self.__distance} cm.", end="|")  
         return(self.__distance)
     
     def avoidance_check(self, threshold):
-        distance = self.get_distance()
-        if (distance < threshold):
-            if(self.__verbose):
-                print(f"[SONAR SENSOR] Obstacle detected ({self.__distance} cm away)")
-            return(True)
-        elif (distance  > threshold):
-            if(self.__verbose):
-                print(f"[SONAR SENSOR] No obstacle detected ({self.__distance} cm away)")
-            return(False)
+        if(self.__enable):
+            distance = self.get_distance()
+            if (distance < threshold):
+                if(self.__verbose):
+                    print(f"[SONAR SENSOR] Obstacle detected ({self.__distance} cm away)")
+                return(True)
+            elif (distance  > threshold):
+                if(self.__verbose):
+                    print(f"[SONAR SENSOR] No obstacle detected ({self.__distance} cm away)")
+                return(False)
     
 
     
