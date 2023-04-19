@@ -75,5 +75,9 @@ class ImageProcessor():
             cv2.imwrite(str(fn), image)
 
 if __name__ == '__main__':
+    from CameraMount import CameraMount
+    cameraMount = CameraMount(10,9)
     imageprocessor = ImageProcessor(log_dir='./')
-    imageprocessor.run()
+    while(True):
+        cameraMount.revolve()
+        imageprocessor.run()
