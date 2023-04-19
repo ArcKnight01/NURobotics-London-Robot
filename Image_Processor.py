@@ -26,7 +26,7 @@ class ImageProcessor():
         if(self.__image_dir.exists() == False):
             print(f"[INFO] {self.__image_dir} does not exist, creating directory.")
         self.__image_dir.mkdir(parents=True, exist_ok=True)
-        self.__buzzer = TonalBuzzer(11,Tone=("A4"))    
+        self.__buzzer = TonalBuzzer(11)    
     # ------------------------------------------------------------------------ #
     # Run an iteration of the image processor. 
     # The sim version needs the robot_state (a dictionary of values from the ADCS System) ot generate simulated imagery (Deprecated)
