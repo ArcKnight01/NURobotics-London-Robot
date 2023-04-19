@@ -8,7 +8,7 @@ class Sonar(Sensor):
         self.__enable = enable
         self.__verbose = verbose
         if (self.__enable):
-            self.__sensor = DistanceSensor(echo=echo_pin, trig=trig_pin)
+            self.__sensor = DistanceSensor(echo=echo_pin, trigger=trig_pin)
             self.__sensor.max_distance = 100*100 #cm
             self.__distance = 0
     
