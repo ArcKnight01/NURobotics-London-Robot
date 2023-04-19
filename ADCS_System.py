@@ -53,7 +53,10 @@ class ADCS(object):
         
         #initialize the csv-data file
         self.init_csv()
-        
+        self.__tickTimer = Clock()
+        self.__tickTimer.reset()
+        self.__tickTimer.update()
+        self.__delT = self.__tickTimer.get_time("run")
         self.__clock.reset()
         self.__clock.update()
         self.__runtime = self.__clock.get_time("run")
@@ -77,7 +80,10 @@ class ADCS(object):
         
     
     def update(self):
-
+        delT = 1
+        
+        self.__tickTimer.update()
+        self.__delT = self.__tickTimer.get_time("run")
         self.__previous_acceleration = self.__acceleration
         self.__previous_velocity = self.__velocity
         self.__previous_position = self.__position
@@ -105,6 +111,10 @@ class ADCS(object):
                        self.__gyro[1] *180/np.pi - self.__gyro_offset[1],
                        self.__gyro[2] *180/np.pi - self.__gyro_offset[2])
         dt = delT
+        self.__tickTimer.update()
+        dt = self.__delT = self.__tickTimer.get_time("run")
+        self.__tickTimer.reset()
+        
         #When the robot is still, the accel values are near 0. In this case, set accel values to zero.
         self.__acceleration = (self.__acceleration[0] - self.__accelerometer_offset[0],
                                self.__acceleration[1] - self.__accelerometer_offset[1],
@@ -142,7 +152,8 @@ class ADCS(object):
 
         #set the orientation based on roll pitch and yaw values
         self.__orientation = (self.__roll, self.__pitch, self.__yaw)
-
+        
+        
         if(self.__verbose):
             print(f"[INFO] Raw Acceleration {self.__raw_acceleration}")
             print(f"[INFO] Linear Acceleration {self.__linear_acceleration}")
