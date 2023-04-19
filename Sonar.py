@@ -5,7 +5,9 @@ import time
 class Sonar(Sensor):
     def __init__(self, verbose=False, enable=True, echo_pin=0, trig_pin=1):
         super().__init__(verbose=verbose, enable=enable)
-        if self.__enable == True:
+        self.__enable = super().__enable
+        self.__verbose = super().__verbose
+        if (self.__enable):
             self.__sensor = DistanceSensor(echo=echo_pin, trig=trig_pin)
             self.__sensor.max_distance = 100*100 #cm
             self.__distance = 0
