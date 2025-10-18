@@ -141,10 +141,6 @@ Toggle ultrasound avoidance by setting `autonomousController.ultrasound_enabled 
 Adjust logging chatter by editing the `verbose` flags used when instantiating `AutonomousController`, `ADCS`, and
 `ImageProcessor` near the top of the script.
 
-> **Future work:** If a dedicated CLI wrapper is desired, create a thin script (e.g., `run_robot.py`) that exposes these
-> runtime toggles as command-line options; no such wrapper currently exists in the repository.
-
-
 License
 
 This project is released under the MIT License. See the LICENSE file for full details.
