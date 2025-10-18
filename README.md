@@ -3,6 +3,7 @@
 ## Project Overview  
 This repository contains the hardware and software stack for the robot developed by the Northeastern University – London Robotics Team for the UniBots UK 2023 inter-collegiate robotics competition. The design uses a Raspberry Pi 4B controller, Python-based modules for motors, servos, ultrasonic sensors, and an IMU, and supports both autonomous and manual operation.  
 For additional project documentation, media, and competition results, see: [https://www.aidanrc.com/unibots-uk-2023](https://www.aidanrc.com/unibots-uk-2023)
+The technical document for this project is contained [here](https://docs.google.com/document/d/1x95HRRY2IjaurOZZFUa4TBfEYou3pGcw90neMIvEJIw/edit?usp=sharing).
 
 ## Objectives  
 - Provide a reusable robotics platform combining hardware and software suitable for competition and research.  
