@@ -32,7 +32,6 @@ The technical document for this project is contained [here](https://docs.google.
 | BNO055 IMU         | SDA → GPIO 2 · SCL → GPIO 3                | I²C bus orientation sensing    |
 | Camera             | CSI connector                              | Pi camera interface            |
 
-*(Verify that these pins match your hardware assembly; adjust if your build differs.)*
 
 ## Software Architecture  
 - **Operating System:** Raspberry Pi OS (32-bit)  
@@ -80,7 +79,7 @@ pip3 install numpy opencv-python adafruit-circuitpython-bno055 gpiozero smbus2 p
 ```
 4. Wire the Hardware
 
-Follow the pinout summary above to connect sensors, motors, IMU and camera.
+Follow the pinout summary above to connect sensors, motors, IMU and camera. A wiring diagram is contained in the technical document.
 Ensure power supply is stable (typically 5 V logic + 12 V drive) and all grounds are common.
 
 5. Calibrate Sensors
