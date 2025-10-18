@@ -141,11 +141,11 @@ Toggle ultrasound avoidance by setting `autonomousController.ultrasound_enabled 
 Adjust logging chatter by editing the `verbose` flags used when instantiating `AutonomousController`, `ADCS`, and
 `ImageProcessor` near the top of the script.
 
-License
+### License
 
 This project is released under the MIT License. See the LICENSE file for full details.
 
-Acknowledgements
+## Acknowledgements
 
 Thank you to the Northeastern London Robotics Team, competition organizers of UniBots UK, and open-source libraries and communities that support robotics development.
 
