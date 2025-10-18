@@ -8,8 +8,8 @@ This repository contains the competition robot developed by the **Northeastern U
 It features a Raspberry Pi 4B controller with modular Python drivers for motors, servos, sonar sensors, and an IMU—enabling both manual and autonomous control modes.  
 
 The robot is designed as a flexible base for research, education, and competition, emphasizing modularity and rapid iteration. View log, and instructions to duplicate here:
-https://docs.google.com/document/d/1x95HRRY2IjaurOZZFUa4TBfEYou3pGcw90neMIvEJIw/edit#heading=h.e5y70zrwz3jn
-
+[https://docs.google.com/document/d/1x95HRRY2IjaurOZZFUa4TBfEYou3pGcw90neMIvEJIw/edit#heading=h.e5y70zrwz3jn
+](https://docs.google.com/document/d/1x95HRRY2IjaurOZZFUa4TBfEYou3pGcw90neMIvEJIw/edit?usp=sharing)
 ---
 
 ## Objectives  
