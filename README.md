@@ -16,8 +16,8 @@ The technical document for this project is contained [here](https://docs.google.
 |--------------------------|----------------------------------------------|-----------------|
 | Raspberry Pi 4B          | Main compute and control board               | USB / GPIO      |
 | Motor drivers            | Dual‐motor and servo control drivers         | PWM / GPIO      |
-| Ultrasonic Sonar (Front) | Obstacle detection (forward direction)       | GPIO (Trig/Echo)|
-| Ultrasonic Sonar (Rear)  | Obstacle detection (rear direction)          | GPIO (Trig/Echo)|
+| Ultrasonic Sonar (L) | Obstacle detection (left direction)       | GPIO (Trig/Echo)|
+| Ultrasonic Sonar (R)  | Obstacle detection (right direction)          | GPIO (Trig/Echo)|
 | BNO055 IMU               | Orientation and motion sensing (yaw/pitch/roll)| I²C           |
 | Camera Module            | Front-facing vision for image processing     | CSI             |
 | Chassis & Wheels         | Mobile drive base                            | —               |
