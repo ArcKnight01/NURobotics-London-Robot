@@ -89,8 +89,17 @@ Run the IMU calibration routine if provided.
 Verify sonar readings in a safe environment.
 
 6. Run the System
-python3 main.py --mode autonomous   # Autonomous mode
-python3 main.py --mode manual       # Manual mode
+python3 AutonomousController.py     # Runs the autonomous controller loop
+
+The `AutonomousController.py` entry point enables an automatic start mode (`automatic_start=True`) that bypasses the physical
+start button for bench testing, drives a predefined sequence via `driveForTime`, and continuously logs timing/power status.
+Toggle ultrasound avoidance by setting `autonomousController.ultrasound_enabled = True` (or calling
+`autonomousController.switch_ultrasound_enable()`), and gate motor motion via the `motor_enable` flag in the `__main__` loop.
+Adjust logging chatter by editing the `verbose` flags used when instantiating `AutonomousController`, `ADCS`, and
+`ImageProcessor` near the top of the script.
+
+> **Future work:** If a dedicated CLI wrapper is desired, create a thin script (e.g., `run_robot.py`) that exposes these
+> runtime toggles as command-line options; no such wrapper currently exists in the repository.
 
 
 License
