@@ -22,15 +22,28 @@ The technical document for this project is contained [here](https://docs.google.
 | Camera Module            | Front-facing vision for image processing     | CSI             |
 | Chassis & Wheels         | Mobile drive base                            | —               |
 
-## Pinout Summary  
-| Device             | GPIO Pin(s)                                | Description                    |
-|--------------------|--------------------------------------------|--------------------------------|
-| HC-SR04            | TRIG → GPIO 17 · ECHO → GPIO 27            |         distance sensing       |
-| HC-SR04            | TRIG → GPIO 22 · ECHO → GPIO 23            |      distance sensing          |
-| Motor Driver A     | IN1 → GPIO 5 · IN2 → GPIO 6 · EN → GPIO 12 | Left wheel control             |
-| Motor Driver B     | IN3 → GPIO 13 · IN4 → GPIO 19 · EN → GPIO 18| Right wheel control            |
-| BNO055 IMU         | SDA → GPIO 2 · SCL → GPIO 3                | I²C bus orientation sensing    |
-| Camera             | CSI connector                              | Pi camera interface            |
+## Pinout Summary
+The default BCM pin assignments mirror the tuples provided to `AutonomousController.__init__` and cover every onboard peripheral that the controller wires up out of the box.
+
+| Peripheral                | BCM Pin(s) (BCM numbering)              | Notes |
+|---------------------------|-----------------------------------------|-------|
+| Drive motor 1             | IN1 → 14 · IN2 → 15 · PWM/EN → 18       | Configured via `motor1_pins` |
+| Drive motor 2             | IN1 → 8 · IN2 → 7 · PWM/EN → 12         | Configured via `motor2_pins` |
+| Drive motor 3             | IN1 → 6 · IN2 → 5 · PWM/EN → 13         | Configured via `motor3_pins` |
+| Drive motor 4             | IN1 → 20 · IN2 → 26 · PWM/EN → 19       | Configured via `motor4_pins` |
+| Optional motor 5 / intake | IN1 → 9 · IN2 → 11 · PWM/EN → 10        | Disabled by default (`motor5_pins`) |
+| Optional motor 6 / intake | IN1 → 27 · IN2 → 17 · PWM/EN → 22       | Disabled by default (`motor6_pins`) |
+| Left HC-SR04 sonar        | Echo → 0 · Trigger → 1                  | Set with `distance_sensor_left_pin` |
+| Right HC-SR04 sonar       | Echo → 21 · Trigger → 16                | Set with `distance_sensor_right_pin` |
+| Camera pan servo          | Signal → 10                             | `top_servo_pin` argument |
+| Camera tilt servo         | Signal → 9                              | `bottom_servo_pin` argument |
+| RGB LED (common anode/cathode) | Red → 23 · Green → 24 · Blue → 25  | Configured via `rgb_pins` |
+| User start button         | Signal → 4                              | Provided through `button_pin` |
+| Buzzer                    | Signal → 11                             | Controlled through `buzzer_pin` |
+| BNO055 IMU (I²C)          | SDA → 2 · SCL → 3                       | Uses Raspberry Pi I²C bus |
+| Camera                    | CSI connector                           | Raspberry Pi camera interface |
+
+Pins can be reconfigured in software by supplying alternative values to the constructor arguments of `AutonomousController` (for example `motor*_pins`, `distance_sensor_*_pin`, `rgb_pins`, `button_pin`, `*_servo_pin`, or `buzzer_pin`). Update your wiring to match any changes you make in code.
 
 
 ## Software Architecture
@@ -69,38 +82,67 @@ git clone https://github.com/ArcKnight01/NURobotics-London-Robot.git
 cd NURobotics-London-Robot
 ```
 
-### 3. Install Dependencies
+### 3. Install System Packages
 ```bash
 sudo apt update && sudo apt upgrade -y
-sudo apt install python3-pip python3-rpi.gpio python3-opencv pigpio
-pip3 install numpy opencv-python adafruit-circuitpython-bno055 gpiozero smbus2 pyserial
+sudo apt install -y python3-pip python3-rpi.gpio python3-opencv python3-picamera \
+    python3-matplotlib python3-psutil python3-numpy pigpio
 ```
 
-### 4. Wire the Hardware
+### 4. Install Python Dependencies
+The autonomous controller, image processor, and camera utilities require the following Python packages:
+
+- `numpy`
+- `opencv-python`
+- `adafruit-circuitpython-bno055`
+- `gpiozero` (including TonalBuzzer support)
+- `smbus2`
+- `pyserial`
+- `colorzero`
+- `psutil`
+- `picamera`
+- `apriltag`
+- `matplotlib`
+- `simpleaudio`
+
+Install them with `pip`:
+
+```bash
+pip3 install numpy opencv-python adafruit-circuitpython-bno055 gpiozero smbus2 pyserial \
+    colorzero psutil picamera apriltag matplotlib simpleaudio
+```
+
+### 5. Additional Setup Notes
+- Enable the Pi camera interface and I2C using `sudo raspi-config` (or the non-interactive `raspi-config nonint` commands) before running the software.
+- Start the `pigpiod` daemon so `gpiozero` can provide hardware PWM for servos and the TonalBuzzer:
+  ```bash
+  sudo systemctl enable --now pigpiod
+  ```
+- If AprilTag detection is required on development machines without camera hardware, ensure the `apriltag` Python wheel is installed and OpenCV can access images from the `Frames/` directory.
+
+### 6. Wire the Hardware
 
 Follow the pinout summary above to connect sensors, motors, IMU and camera. A wiring diagram is contained in the technical document.
 Ensure power supply is stable (typically 5 V logic + 12 V drive) and all grounds are common.
 
-### 5. Calibrate Sensors
+### 7. Calibrate Sensors
 
 Run the IMU calibration routine within [`ADCS_System.py`](./ADCS_System.py) and record fresh offsets before each event.
 
 Verify sonar readings in a safe environment.
 
-### 6. Run the System
-`AutonomousController.py` is the entry point for deployments and handles the timed routine automatically once the start button is pressed. Manual teleoperation is not currently implemented in this repository, but the controller class exposes helpers for future expansion.
+6. Run the System
+python3 AutonomousController.py     # Runs the autonomous controller loop
 
-```bash
-python3 AutonomousController.py
-```
+The `AutonomousController.py` entry point enables an automatic start mode (`automatic_start=True`) that bypasses the physical
+start button for bench testing, drives a predefined sequence via `driveForTime`, and continuously logs timing/power status.
+Toggle ultrasound avoidance by setting `autonomousController.ultrasound_enabled = True` (or calling
+`autonomousController.switch_ultrasound_enable()`), and gate motor motion via the `motor_enable` flag in the `__main__` loop.
+Adjust logging chatter by editing the `verbose` flags used when instantiating `AutonomousController`, `ADCS`, and
+`ImageProcessor` near the top of the script.
 
-Use the onboard toggle button (GPIO 4) to start/stop the autonomous routine when running on the robot.
-
-## Diagnostics & Calibration Utilities
-- [`Tests/gpio_indiv_motor_test.py`](./Tests/gpio_indiv_motor_test.py) — exercise individual drive motors to verify wiring, direction, and PWM tuning.
-- [`Tests/gpio_led_test.py`](./Tests/gpio_led_test.py) — validate RGB indicator wiring and colour mappings.
-- [`Tests/image_test.py`](./Tests/image_test.py) — run vision routines against stored frames for tuning thresholds without deploying on hardware.
-- [`ADCS_System.py`](./ADCS_System.py) — contains calibration routines (`calibrate_*` methods) for the BNO055 IMU; run on the robot to refresh offsets before competitions.
+> **Future work:** If a dedicated CLI wrapper is desired, create a thin script (e.g., `run_robot.py`) that exposes these
+> runtime toggles as command-line options; no such wrapper currently exists in the repository.
 
 
 License
