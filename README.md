@@ -1,14 +1,14 @@
 # NURobotics-London-Robot
 
 ## Project Overview  
-This repository contains the hardware and software stack for the robot developed by the Northeastern University – London Robotics Team for the UniBots UK 2023 inter-collegiate robotics competition. The design uses a Raspberry Pi 4B controller, Python-based modules for motors, servos, ultrasonic sensors, and an IMU, and supports both autonomous and manual operation.  
+This repository contains the hardware and software stack for the robot developed by the Northeastern University – London Robotics Team for the UniBots UK 2023 inter-collegiate robotics competition. The design uses a Raspberry Pi 4B controller and Python modules that are orchestrated by `AutonomousController.py` to coordinate drive motors, servos, ultrasonic sensors, the RGB status indicator, the camera gimbal, the ADCS (IMU fusion) stack, and onboard vision processing.
 For additional project documentation, media, and competition results, see: [https://www.aidanrc.com/unibots-uk-2023](https://www.aidanrc.com/unibots-uk-2023)
 The technical document for this project is contained [here](https://docs.google.com/document/d/1x95HRRY2IjaurOZZFUa4TBfEYou3pGcw90neMIvEJIw/edit?usp=sharing).
 
 ## Objectives  
 - Provide a reusable robotics platform combining hardware and software suitable for competition and research.  
 - Enable autonomous navigation using sensor fusion (sonar + IMU + vision).  
-- Allow manual control/override for testing and debugging.  
+- Provide hooks for future manual control/override while prioritising an autonomous competition mode.
 - Foster rapid prototyping of vision, control, and embedded systems.
 
 ## Hardware Architecture  
@@ -46,34 +46,29 @@ The default BCM pin assignments mirror the tuples provided to `AutonomousControl
 Pins can be reconfigured in software by supplying alternative values to the constructor arguments of `AutonomousController` (for example `motor*_pins`, `distance_sensor_*_pin`, `rgb_pins`, `button_pin`, `*_servo_pin`, or `buzzer_pin`). Update your wiring to match any changes you make in code.
 
 
-## Software Architecture  
-- **Operating System:** Raspberry Pi OS (32-bit)  
-- **Language:** Python 3.x  
-- **Key Libraries:** `numpy`, `opencv‐python`, `RPi.GPIO`, `smbus2`, `adafruit-circuitpython-bno055`, `gpiozero`  
-- **Modules:**
-  - `motors.py` — motor and servo driver control  
-  - `sonar.py` — ultrasonic sensor interface  
-  - `imu.py` — IMU initialization and orientation reading  
-  - `camera.py` — image capture and processing pipelines  
-  - `autonomy.py` — autonomous decision logic  
-  - `manual_control.py` — manual override and teleoperation  
-  - `main.py` — entry point, orchestrates initialization, mode selection and control loop  
+## Software Architecture
+- **Operating System:** Raspberry Pi OS (32-bit)
+- **Language:** Python 3.x
+- **Key Libraries:** `numpy`, `opencv-python`, `RPi.GPIO`, `smbus2`, `adafruit-circuitpython-bno055`, `gpiozero`
+- **Runtime Orchestration:** `AutonomousController.py` instantiates and coordinates all subsystems, runs the timed competition routine, and exposes helper methods for motion, perception, and telemetry logging.
+- **Subsystem Modules:**
+  - [`DCMotors.py`](./DCMotors.py) — wraps `gpiozero.Motor` objects into individually addressable drive motors and a `DriveMotors` helper that provides tank steering and stop routines.
+  - [`Sonar.py`](./Sonar.py) — manages HC-SR04 ultrasonic sensors for left/right obstacle ranging and avoidance checks.
+  - [`Servo_Motors.py`](./Servo_Motors.py) — provides a light abstraction over `gpiozero.Servo` with degree-based positioning and reset helpers.
+  - [`RGB_Indicator.py`](./RGB_Indicator.py) — controls the tri-colour status LED to signal robot state or errors.
+  - [`CameraMount.py`](./CameraMount.py) — couples two `ServoMotor` instances to aim the camera, including a sweep (`revolve`) routine for scanning.
+  - [`ADCS_System.py`](./ADCS_System.py) — configures the BNO055 IMU, handles calibration, fuses acceleration/gyro/magnetometer readings, and logs telemetry to CSV for post-run analysis.
+  - [`Image_Processor.py`](./Image_Processor.py) — captures frames from the PiCamera, performs buoy detection, triggers feedback via the buzzer, and logs frames for review.
+  - [`Camera_Util.py`](./Camera_Util.py) — vision utility functions (AprilTag detection, buoy colour filtering, geometric helpers) consumed by the image processor.
 
-### Control Loop (Pseudocode)  
-initialize all modules
-select mode (manual or autonomous)
+### Control Loop (Pseudocode)
+initialize `AutonomousController`
 
 while robot_active:
-imu_data = imu.read()
-sonar_data = sonar.scan()
-camera_data = camera.process()
-if mode == "autonomous":
-    drive_cmd = autonomy.decide(imu_data, sonar_data, camera_data)
-else:
-    drive_cmd = manual_control.input()
-
-motors.drive(drive_cmd)
-log.status()
+    update ADCS, sonar, and image processing modules
+    derive motion plan from current mission phase
+    command drive motors and camera mount
+    log telemetry / persist frames
 
 
 ## Setup & Installation  
@@ -132,7 +127,7 @@ Ensure power supply is stable (typically 5 V logic + 12 V drive) and all grounds
 
 ### 7. Calibrate Sensors
 
-Run the IMU calibration routine if provided.
+Run the IMU calibration routine within [`ADCS_System.py`](./ADCS_System.py) and record fresh offsets before each event.
 
 Verify sonar readings in a safe environment.
 
