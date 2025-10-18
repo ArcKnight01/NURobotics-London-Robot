@@ -25,8 +25,8 @@ The technical document for this project is contained [here](https://docs.google.
 ## Pinout Summary  
 | Device             | GPIO Pin(s)                                | Description                    |
 |--------------------|--------------------------------------------|--------------------------------|
-| HC-SR04 Front      | TRIG → GPIO 17 · ECHO → GPIO 27            | Forward distance sensing       |
-| HC-SR04 Rear       | TRIG → GPIO 22 · ECHO → GPIO 23            | Rear distance sensing          |
+| HC-SR04            | TRIG → GPIO 17 · ECHO → GPIO 27            |         distance sensing       |
+| HC-SR04            | TRIG → GPIO 22 · ECHO → GPIO 23            |      distance sensing          |
 | Motor Driver A     | IN1 → GPIO 5 · IN2 → GPIO 6 · EN → GPIO 12 | Left wheel control             |
 | Motor Driver B     | IN3 → GPIO 13 · IN4 → GPIO 19 · EN → GPIO 18| Right wheel control            |
 | BNO055 IMU         | SDA → GPIO 2 · SCL → GPIO 3                | I²C bus orientation sensing    |
