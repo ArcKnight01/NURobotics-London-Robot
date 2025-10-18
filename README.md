@@ -1,6 +1,4 @@
 # NURobotics-London-Robot
-
-## Project Overview  
 This repository contains the hardware and software stack for the robot developed by the Northeastern University – London Robotics Team for the UniBots UK 2023 inter-collegiate robotics competition. The design uses a Raspberry Pi 4B controller and Python modules that are orchestrated by `AutonomousController.py` to coordinate drive motors, servos, ultrasonic sensors, the RGB status indicator, the camera gimbal, the ADCS (IMU fusion) stack, and onboard vision processing.
 For additional project documentation, media, and competition results, see: [https://www.aidanrc.com/unibots-uk-2023](https://www.aidanrc.com/unibots-uk-2023)
 The technical document for this project is contained [here](https://docs.google.com/document/d/1x95HRRY2IjaurOZZFUa4TBfEYou3pGcw90neMIvEJIw/edit?usp=sharing).
