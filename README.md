@@ -68,29 +68,66 @@ log.status()
 - Flash the Raspberry Pi OS (32-bit) onto the SD card.  
 - Enable SSH, I2C, and camera via `raspi-config`.
 
-### 2. Clone the Repository  
+### 2. Clone the Repository
 ```bash
 git clone https://github.com/ArcKnight01/NURobotics-London-Robot.git
 cd NURobotics-London-Robot
-3. Install Dependencies
-sudo apt update && sudo apt upgrade -y
-sudo apt install python3-pip python3-rpi.gpio python3-opencv pigpio
-pip3 install numpy opencv-python adafruit-circuitpython-bno055 gpiozero smbus2 pyserial
 ```
-4. Wire the Hardware
+
+### 3. Install System Packages
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y python3-pip python3-rpi.gpio python3-opencv python3-picamera \
+    python3-matplotlib python3-psutil python3-numpy pigpio
+```
+
+### 4. Install Python Dependencies
+The autonomous controller, image processor, and camera utilities require the following Python packages:
+
+- `numpy`
+- `opencv-python`
+- `adafruit-circuitpython-bno055`
+- `gpiozero` (including TonalBuzzer support)
+- `smbus2`
+- `pyserial`
+- `colorzero`
+- `psutil`
+- `picamera`
+- `apriltag`
+- `matplotlib`
+- `simpleaudio`
+
+Install them with `pip`:
+
+```bash
+pip3 install numpy opencv-python adafruit-circuitpython-bno055 gpiozero smbus2 pyserial \
+    colorzero psutil picamera apriltag matplotlib simpleaudio
+```
+
+### 5. Additional Setup Notes
+- Enable the Pi camera interface and I2C using `sudo raspi-config` (or the non-interactive `raspi-config nonint` commands) before running the software.
+- Start the `pigpiod` daemon so `gpiozero` can provide hardware PWM for servos and the TonalBuzzer:
+  ```bash
+  sudo systemctl enable --now pigpiod
+  ```
+- If AprilTag detection is required on development machines without camera hardware, ensure the `apriltag` Python wheel is installed and OpenCV can access images from the `Frames/` directory.
+
+### 6. Wire the Hardware
 
 Follow the pinout summary above to connect sensors, motors, IMU and camera. A wiring diagram is contained in the technical document.
 Ensure power supply is stable (typically 5 V logic + 12 V drive) and all grounds are common.
 
-5. Calibrate Sensors
+### 7. Calibrate Sensors
 
 Run the IMU calibration routine if provided.
 
 Verify sonar readings in a safe environment.
 
-6. Run the System
+### 8. Run the System
+```bash
 python3 main.py --mode autonomous   # Autonomous mode
 python3 main.py --mode manual       # Manual mode
+```
 
 
 License
