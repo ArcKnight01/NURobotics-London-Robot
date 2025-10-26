@@ -4,12 +4,6 @@ This repository contains the hardware and software stack for the robot developed
 For additional project documentation, media, and competition results, see: [https://www.aidanrc.com/unibots-uk-2023](https://www.aidanrc.com/unibots-uk-2023)
 The technical document for this project is contained [here](https://docs.google.com/document/d/1x95HRRY2IjaurOZZFUa4TBfEYou3pGcw90neMIvEJIw/edit?usp=sharing).
 
-## Objectives  
-- Provide a reusable robotics platform combining hardware and software suitable for competition and research.  
-- Enable autonomous navigation using sensor fusion (sonar + IMU + vision).  
-- Provide hooks for future manual control/override while prioritising an autonomous competition mode.
-- Foster rapid prototyping of vision, control, and embedded systems.
-
 ## Hardware Architecture  
 | Component                | Description                                  | Interface       |
 |--------------------------|----------------------------------------------|-----------------|
@@ -44,7 +38,6 @@ The default BCM pin assignments mirror the tuples provided to `AutonomousControl
 
 Pins can be reconfigured in software by supplying alternative values to the constructor arguments of `AutonomousController` (for example `motor*_pins`, `distance_sensor_*_pin`, `rgb_pins`, `button_pin`, `*_servo_pin`, or `buzzer_pin`). Update your wiring to match any changes you make in code.
 
-
 ## Software Architecture
 - **Operating System:** Raspberry Pi OS (32-bit)
 - **Language:** Python 3.x
@@ -67,13 +60,18 @@ while robot_active:
     update ADCS, sonar, and image processing modules
     derive motion plan from current mission phase
     command drive motors and camera mount
-    log telemetry / persist frames
+    log telemetry
 
 
 ## Setup & Installation  
 ### 1. Prepare the Raspberry Pi  
 - Flash the Raspberry Pi OS (32-bit) onto the SD card.  
 - Enable SSH, I2C, and camera via `raspi-config`.
+- To connect to the pi:
+```bash
+ssh pi@robotpi.local
+fish
+```
 
 ### 2. Clone the Repository
 ```bash
