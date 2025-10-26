@@ -16,7 +16,6 @@ The technical document for this project is contained [here](https://docs.google.
 | Chassis & Wheels         | Mobile drive base                            | —               |
 
 ## Pinout Summary
-The default BCM pin assignments mirror the tuples provided to `AutonomousController.__init__` and cover every onboard peripheral that the controller wires up out of the box.
 
 | Peripheral                | BCM Pin(s) (BCM numbering)              | Notes |
 |---------------------------|-----------------------------------------|-------|
