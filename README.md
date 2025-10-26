@@ -35,7 +35,7 @@ The technical document for this project is contained [here](https://docs.google.
 | BNO055 IMU (I²C)          | SDA → 2 · SCL → 3                       | Uses Raspberry Pi I²C bus |
 | Camera                    | CSI connector                           | Raspberry Pi camera interface |
 
-Pins can be reconfigured in software by supplying alternative values to the constructor arguments of `AutonomousController` (for example `motor*_pins`, `distance_sensor_*_pin`, `rgb_pins`, `button_pin`, `*_servo_pin`, or `buzzer_pin`). Update your wiring to match any changes you make in code.
+Pins can be reconfigured in software by supplying alternative values to the constructor arguments of `AutonomousController` (for example `motor*_pins`, `distance_sensor_*_pin`, `rgb_pins`, `button_pin`, `*_servo_pin`, or `buzzer_pin`). 
 
 ## Software Architecture
 - **Operating System:** Raspberry Pi OS (32-bit)
@@ -101,12 +101,14 @@ The autonomous controller, image processor, and camera utilities require the fol
 - `matplotlib`
 - `simpleaudio`
 
-Install them with `pip`:
+Install the following with `pip`:
 
 ```bash
 pip3 install numpy opencv-python adafruit-circuitpython-bno055 gpiozero smbus2 pyserial \
     colorzero psutil picamera apriltag matplotlib simpleaudio
 ```
+
+We should have used a .env in our project, in the future, we would want to use a .env for pip installs.
 
 ### 5. Additional Setup Notes
 - Enable the Pi camera interface and I2C using `sudo raspi-config` (or the non-interactive `raspi-config nonint` commands) before running the software.
